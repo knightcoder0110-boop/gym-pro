@@ -9,7 +9,7 @@ export const getTrainers = asyncHandler(async (req: Request, res: Response) => {
   const trainers = await prisma.user.findMany({
     where: {
       organizationId,
-      role: { in: ['TRAINER', 'PT'] },
+      isTrainer: true,
       ...(includeInactive !== 'true' && { isActive: true }),
     },
     select: {
@@ -22,7 +22,7 @@ export const getTrainers = asyncHandler(async (req: Request, res: Response) => {
       role: true,
       isActive: true,
       createdAt: true,
-      classSchedules: {
+      classesInstructed: {
         where: { isActive: true },
         include: {
           class: { select: { id: true, name: true, category: true } },
@@ -38,7 +38,7 @@ export const getTrainers = asyncHandler(async (req: Request, res: Response) => {
       },
       _count: {
         select: {
-          classSchedules: true,
+          classesInstructed: true,
           ptSessions: true,
         },
       },
@@ -60,7 +60,7 @@ export const getTrainer = asyncHandler(async (req: Request, res: Response) => {
     where: {
       id,
       organizationId,
-      role: { in: ['TRAINER', 'PT'] },
+      isTrainer: true,
     },
     select: {
       id: true,
@@ -72,7 +72,7 @@ export const getTrainer = asyncHandler(async (req: Request, res: Response) => {
       role: true,
       isActive: true,
       createdAt: true,
-      classSchedules: {
+      classesInstructed: {
         include: {
           class: { select: { id: true, name: true, category: true, color: true } },
           branch: { select: { id: true, name: true } },
@@ -102,12 +102,12 @@ export const getTrainer = asyncHandler(async (req: Request, res: Response) => {
 
 export const createTrainer = asyncHandler(async (req: Request, res: Response) => {
   const organizationId = req.user!.organizationId;
-  const branchId = req.user!.branchId;
   const {
     email,
     firstName,
     lastName,
     phone,
+    branchId,
     specializations,
     bio,
     certifications,
@@ -130,7 +130,8 @@ export const createTrainer = asyncHandler(async (req: Request, res: Response) =>
       firstName,
       lastName,
       phone,
-      password: '', // They'll set password on first login
+      passwordHash: '', // They'll set password on first login
+      isTrainer: true,
       role: 'TRAINER',
       organizationId,
       branchId,
@@ -164,7 +165,7 @@ export const updateTrainer = asyncHandler(async (req: Request, res: Response) =>
     where: {
       id,
       organizationId,
-      role: { in: ['TRAINER', 'PT'] },
+      isTrainer: true,
     },
   });
 
@@ -207,7 +208,7 @@ export const deleteTrainer = asyncHandler(async (req: Request, res: Response) =>
     where: {
       id,
       organizationId,
-      role: { in: ['TRAINER', 'PT'] },
+      isTrainer: true,
     },
   });
 
@@ -236,7 +237,7 @@ export const getTrainerSchedule = asyncHandler(async (req: Request, res: Respons
     where: {
       id,
       organizationId,
-      role: { in: ['TRAINER', 'PT'] },
+      isTrainer: true,
     },
   });
 
@@ -288,10 +289,10 @@ export const getTrainerStats = asyncHandler(async (req: Request, res: Response) 
 
   const [totalTrainers, activeTrainers, totalClasses, totalPTSessions] = await Promise.all([
     prisma.user.count({
-      where: { organizationId, role: { in: ['TRAINER', 'PT'] } },
+      where: { organizationId, isTrainer: true },
     }),
     prisma.user.count({
-      where: { organizationId, role: { in: ['TRAINER', 'PT'] }, isActive: true },
+      where: { organizationId, isTrainer: true, isActive: true },
     }),
     prisma.classSchedule.count({
       where: { class: { organizationId }, isActive: true },

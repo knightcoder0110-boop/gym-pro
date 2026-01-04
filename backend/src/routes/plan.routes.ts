@@ -9,7 +9,7 @@ import {
 } from '../controllers/plan.controller.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // Protected routes (require authentication)
 router.get('/', authenticate, getPlans);

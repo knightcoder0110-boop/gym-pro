@@ -7,13 +7,13 @@ import { AppError, asyncHandler } from '../middlewares/error.middleware.js';
 import type { JwtPayload } from '../middlewares/auth.middleware.js';
 
 const generateTokens = (payload: JwtPayload) => {
-  const accessToken = jwt.sign(payload, config.jwt.secret, {
+  const accessToken = jwt.sign(payload, config.jwt.secret as jwt.Secret, {
     expiresIn: config.jwt.expiresIn,
-  });
+  } as jwt.SignOptions);
   
-  const refreshToken = jwt.sign(payload, config.jwt.refreshSecret, {
+  const refreshToken = jwt.sign(payload, config.jwt.refreshSecret as jwt.Secret, {
     expiresIn: config.jwt.refreshExpiresIn,
-  });
+  } as jwt.SignOptions);
   
   return { accessToken, refreshToken };
 };

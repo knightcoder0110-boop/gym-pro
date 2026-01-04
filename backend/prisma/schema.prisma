@@ -67,6 +67,7 @@ model Branch {
   inventory      Inventory[]
   members        Member[]
   staff          User[]
+  leads          Lead[]
 
   @@index([organizationId])
 }
@@ -98,6 +99,8 @@ model User {
   assignedMembers   Member[]        @relation("TrainerMembers")
   ptSessions        PTSession[]
   paymentsCollected Payment[]       @relation("CollectedBy")
+  assignedLeads     Lead[]
+  leadActivities    LeadActivity[]
   branch            Branch?         @relation(fields: [branchId], references: [id])
   organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -227,6 +230,7 @@ model Membership {
   updatedAt             DateTime         @updatedAt
   member                Member           @relation(fields: [memberId], references: [id], onDelete: Cascade)
   plan                  Plan             @relation(fields: [planId], references: [id])
+  payments              Payment[]
 
   @@index([memberId])
   @@index([status])
@@ -276,22 +280,29 @@ model InvoiceItem {
 
 model Payment {
   id              String        @id @default(cuid())
-  invoiceId       String
+  invoiceId       String?
+  membershipId    String?
   memberId        String
   amount          Float
+  type            PaymentType   @default(MEMBERSHIP)
   method          PaymentMethod
   status          PaymentStatus @default(SUCCESS)
   transactionId   String?
   transactionData Json?
   collectedById   String?
+  refundedAmount  Float?
+  refundedAt      DateTime?
+  refundReason    String?
   notes           String?
   createdAt       DateTime      @default(now())
   collectedBy     User?         @relation("CollectedBy", fields: [collectedById], references: [id])
-  invoice         Invoice       @relation(fields: [invoiceId], references: [id])
+  invoice         Invoice?      @relation(fields: [invoiceId], references: [id])
+  membership      Membership?   @relation(fields: [membershipId], references: [id])
   member          Member        @relation(fields: [memberId], references: [id])
 
   @@index([memberId])
   @@index([invoiceId])
+  @@index([type])
 }
 
 model Class {
@@ -347,19 +358,21 @@ model ClassSchedule {
 }
 
 model ClassBooking {
-  id               String        @id @default(cuid())
-  scheduleId       String
-  memberId         String
-  classDate        DateTime
-  status           BookingStatus @default(CONFIRMED)
-  isWaitlisted     Boolean       @default(false)
-  waitlistPosition Int?
-  attended         Boolean?
-  checkedInAt      DateTime?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  member           Member        @relation(fields: [memberId], references: [id])
-  schedule         ClassSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  id                 String        @id @default(cuid())
+  scheduleId         String
+  memberId           String
+  classDate          DateTime
+  status             BookingStatus @default(CONFIRMED)
+  isWaitlisted       Boolean       @default(false)
+  waitlistPosition   Int?
+  attended           Boolean?
+  checkedInAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  member             Member        @relation(fields: [memberId], references: [id])
+  schedule           ClassSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
   @@index([scheduleId])
   @@index([memberId])
@@ -406,6 +419,7 @@ model Attendance {
 model Lead {
   id                String         @id @default(cuid())
   organizationId    String
+  branchId          String?
   firstName         String
   lastName          String?
   email             String?
@@ -417,6 +431,7 @@ model Lead {
   status            LeadStatus     @default(NEW)
   assignedToId      String?
   nextFollowUp      DateTime?
+  lastContactedAt   DateTime?
   notes             String?
   convertedMemberId String?
   convertedAt       DateTime?
@@ -424,6 +439,8 @@ model Lead {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedTo        User?          @relation(fields: [assignedToId], references: [id])
+  branch            Branch?        @relation(fields: [branchId], references: [id])
   activities        LeadActivity[]
 
   @@index([organizationId])
@@ -431,13 +448,17 @@ model Lead {
 }
 
 model LeadActivity {
-  id          String   @id @default(cuid())
-  leadId      String
-  type        String
-  notes       String?
-  createdById String?
-  createdAt   DateTime @default(now())
-  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  id            String    @id @default(cuid())
+  leadId        String
+  type          String
+  description   String?
+  notes         String?
+  scheduledAt   DateTime?
+  performedById String?
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  lead          Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  performedBy   User?     @relation(fields: [performedById], references: [id])
 }
 
 model ProductCategory {
@@ -678,9 +699,11 @@ enum LeadStatus {
   NEW
   CONTACTED
   INTERESTED
+  QUALIFIED
   TOUR_SCHEDULED
   TOUR_DONE
   NEGOTIATION
+  CONVERTED
   WON
   LOST
 }
@@ -698,9 +721,21 @@ enum PaymentMethod {
 
 enum PaymentStatus {
   SUCCESS
+  COMPLETED
   FAILED
   PENDING
   REFUNDED
+  PARTIAL_REFUND
+}
+
+enum PaymentType {
+  MEMBERSHIP
+  RENEWAL
+  PT_SESSION
+  CLASS
+  PRODUCT
+  REGISTRATION
+  OTHER
 }
 
 enum InvoiceStatus {
@@ -750,7 +785,9 @@ enum ClassDifficulty {
 }
 
 enum BookingStatus {
+  BOOKED
   CONFIRMED
+  ATTENDED
   CANCELLED
   NO_SHOW
   COMPLETED

@@ -92,7 +92,7 @@ export const getPayment = asyncHandler(async (req: Request, res: Response) => {
 
 export const createPayment = asyncHandler(async (req: Request, res: Response) => {
   const organizationId = req.user!.organizationId;
-  const userId = req.user!.id;
+  const userId = req.user!.userId;
   const {
     memberId,
     membershipId,
@@ -127,16 +127,11 @@ export const createPayment = asyncHandler(async (req: Request, res: Response) =>
       memberId,
       membershipId,
       amount: totalAmount,
-      subtotal,
-      discount: discountAmount,
-      tax: taxAmount,
       type: type || 'MEMBERSHIP',
-      paymentMethod: paymentMethod || 'CASH',
-      status: 'COMPLETED',
-      invoiceNumber,
+      method: paymentMethod || 'CASH',
+      status: 'SUCCESS',
       notes,
       collectedById: userId,
-      paymentDate: new Date(),
     },
     include: {
       member: {
@@ -183,7 +178,7 @@ export const refundPayment = asyncHandler(async (req: Request, res: Response) =>
       status: 'REFUNDED',
       refundedAmount: actualRefundAmount,
       refundReason: reason,
-      refundDate: new Date(),
+      refundedAt: new Date(),
     },
     include: {
       member: {
@@ -213,7 +208,7 @@ export const getPaymentStats = asyncHandler(async (req: Request, res: Response) 
   };
 
   if (Object.keys(dateFilter).length > 0) {
-    where.paymentDate = dateFilter;
+    where.createdAt = dateFilter;
   }
 
   const [totalRevenue, paymentsByMethod, paymentsByType, recentPayments] = await Promise.all([
@@ -223,7 +218,7 @@ export const getPaymentStats = asyncHandler(async (req: Request, res: Response) 
       _count: true,
     }),
     prisma.payment.groupBy({
-      by: ['paymentMethod'],
+      by: ['method'],
       where,
       _sum: { amount: true },
       _count: true,
@@ -285,8 +280,8 @@ export const getMemberPayments = asyncHandler(async (req: Request, res: Response
   });
 
   const totalPaid = payments
-    .filter(p => p.status === 'COMPLETED')
-    .reduce((sum, p) => sum + (p.amount?.toNumber() || 0), 0);
+    .filter(p => p.status === 'SUCCESS')
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
 
   res.json({
     success: true,

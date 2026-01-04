@@ -74,7 +74,7 @@ export const getLead = asyncHandler(async (req: Request, res: Response) => {
 
 export const createLead = asyncHandler(async (req: Request, res: Response) => {
   const organizationId = req.user!.organizationId;
-  const userId = req.user!.id;
+  const userId = req.user!.userId;
   const {
     firstName,
     lastName,
@@ -126,7 +126,7 @@ export const createLead = asyncHandler(async (req: Request, res: Response) => {
 export const updateLead = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const organizationId = req.user!.organizationId;
-  const userId = req.user!.id;
+  const userId = req.user!.userId;
   const updates = req.body;
 
   const lead = await prisma.lead.findFirst({
@@ -191,7 +191,7 @@ export const deleteLead = asyncHandler(async (req: Request, res: Response) => {
 export const addActivity = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const organizationId = req.user!.organizationId;
-  const userId = req.user!.id;
+  const userId = req.user!.userId;
   const { type, description, scheduledAt } = req.body;
 
   const lead = await prisma.lead.findFirst({
@@ -230,7 +230,7 @@ export const addActivity = asyncHandler(async (req: Request, res: Response) => {
 export const convertToMember = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const organizationId = req.user!.organizationId;
-  const userId = req.user!.id;
+  const userId = req.user!.userId;
   const { planId, durationId } = req.body;
 
   const lead = await prisma.lead.findFirst({
@@ -256,7 +256,7 @@ export const convertToMember = asyncHandler(async (req: Request, res: Response) 
       branchId: lead.branchId || (await prisma.branch.findFirst({ where: { organizationId } }))?.id || '',
       memberId,
       firstName: lead.firstName,
-      lastName: lead.lastName,
+      lastName: lead.lastName || '',
       email: lead.email || '',
       phone: lead.phone,
       source: lead.source,

@@ -117,11 +117,6 @@ export const updateClass = asyncHandler(async (req: Request, res: Response) => {
   const updatedClass = await prisma.class.update({
     where: { id },
     data: updates,
-    include: {
-      instructor: {
-        select: { id: true, firstName: true, lastName: true },
-      },
-    },
   });
 
   res.json({
@@ -174,7 +169,7 @@ export const getSchedules = asyncHandler(async (req: Request, res: Response) => 
     where,
     include: {
       class: {
-        select: { id: true, name: true, color: true, duration: true, type: true },
+        select: { id: true, name: true, color: true, durationMinutes: true, category: true },
       },
       branch: {
         select: { id: true, name: true },
@@ -221,12 +216,11 @@ export const createSchedule = asyncHandler(async (req: Request, res: Response) =
     data: {
       classId,
       branchId,
-      instructorId: instructorId || classData.instructorId,
+      instructorId,
       dayOfWeek,
       startTime,
       endTime,
-      maxCapacity: maxCapacity || classData.maxCapacity,
-      room,
+      location: room,
     },
     include: {
       class: {
@@ -325,7 +319,7 @@ export const getBookings = asyncHandler(async (req: Request, res: Response) => {
       schedule: {
         include: {
           class: {
-            select: { id: true, name: true, color: true, duration: true },
+            select: { id: true, name: true, color: true, durationMinutes: true },
           },
         },
       },
@@ -350,7 +344,7 @@ export const createBooking = asyncHandler(async (req: Request, res: Response) =>
   const schedule = await prisma.classSchedule.findFirst({
     where: { id: scheduleId, class: { organizationId } },
     include: {
-      class: { select: { name: true } },
+      class: { select: { name: true, maxCapacity: true } },
       _count: { select: { bookings: true } },
     },
   });
@@ -401,7 +395,7 @@ export const createBooking = asyncHandler(async (req: Request, res: Response) =>
     },
   });
 
-  if (bookingsCount >= schedule.maxCapacity) {
+  if (bookingsCount >= (schedule.class?.maxCapacity || 20)) {
     throw new AppError('Class is full', 400, 'CLASS_FULL');
   }
 
@@ -410,7 +404,7 @@ export const createBooking = asyncHandler(async (req: Request, res: Response) =>
       scheduleId,
       memberId,
       classDate: new Date(classDate),
-      status: 'BOOKED',
+      status: 'CONFIRMED',
     },
     include: {
       schedule: {
@@ -524,7 +518,7 @@ export const getWeeklySchedule = asyncHandler(async (req: Request, res: Response
     where,
     include: {
       class: {
-        select: { id: true, name: true, color: true, duration: true, type: true, difficulty: true },
+        select: { id: true, name: true, color: true, durationMinutes: true, category: true, difficulty: true, maxCapacity: true },
       },
       instructor: {
         select: { id: true, firstName: true, lastName: true, avatar: true },
@@ -555,7 +549,7 @@ export const getWeeklySchedule = asyncHandler(async (req: Request, res: Response
       .map((s) => ({
         ...s,
         bookedCount: s.bookings.length,
-        availableSpots: s.maxCapacity - s.bookings.length,
+        availableSpots: (s.class?.maxCapacity || 20) - s.bookings.length,
       })),
   }));
 

@@ -8,7 +8,7 @@ import {
   deleteMember,
 } from '../controllers/member.controller.js';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.use(authenticate);
 

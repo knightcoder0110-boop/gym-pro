@@ -279,7 +279,7 @@ export const getMemberAttendance = asyncHandler(async (req: Request, res: Respon
   });
 });
 
-export const checkInByQR = asyncHandler(async (req: Request, res: Response) => {
+export const checkInByQR = asyncHandler(async (req: Request, res: Response, next) => {
   const organizationId = req.user!.organizationId;
   const { qrCode, branchId } = req.body;
 
@@ -306,10 +306,10 @@ export const checkInByQR = asyncHandler(async (req: Request, res: Response) => {
   req.body.method = 'QR_CODE';
 
   // Call the checkIn handler
-  return checkIn(req, res);
+  return checkIn(req, res, next);
 });
 
-export const checkInByMemberId = asyncHandler(async (req: Request, res: Response) => {
+export const checkInByMemberId = asyncHandler(async (req: Request, res: Response, next) => {
   const organizationId = req.user!.organizationId;
   const { memberIdCode, branchId } = req.body;
 
@@ -328,5 +328,5 @@ export const checkInByMemberId = asyncHandler(async (req: Request, res: Response
   req.body.memberId = member.id;
   req.body.method = 'MEMBER_ID';
 
-  return checkIn(req, res);
+  return checkIn(req, res, next);
 });

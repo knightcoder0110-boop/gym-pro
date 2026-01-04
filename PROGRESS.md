@@ -58,12 +58,15 @@
 - [ ] Email notifications
 - [ ] Reports API (dedicated endpoints)
 - [ ] File uploads (avatars, documents)
-- [ ] Fix TypeScript errors in class/trainer/lead controllers (schema field mismatches)
+- [x] ~~Fix TypeScript errors in class/trainer/lead controllers (schema field mismatches)~~ ✅ Fixed
 
 ### Post-MVP Features
-- [ ] Inventory & POS
+- [ ] Inventory & POS page (frontend)
 - [ ] PT Session booking
 - [ ] Notifications system
+- [ ] Workout Plans module
+- [ ] Diet Plans module
+- [ ] Body Measurements tracking
 
 ---
 

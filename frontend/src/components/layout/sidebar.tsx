@@ -121,10 +121,7 @@ export function Sidebar({ className }: SidebarProps) {
                       isActive ? "text-black" : "text-[#b3b3b3] group-hover:text-white"
                     )} />
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-medium truncate">{item.name}</span>
-                    <span className="text-xs text-[#b3b3b3] truncate">Management</span>
-                  </div>
+                  <span className="text-sm font-medium truncate">{item.name}</span>
                 </Link>
               );
             })}

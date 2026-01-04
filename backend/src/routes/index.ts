@@ -10,7 +10,7 @@ import classRoutes from './class.routes.js';
 import trainerRoutes from './trainer.routes.js';
 import leadRoutes from './lead.routes.js';
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 router.use('/auth', authRoutes);
 router.use('/members', memberRoutes);
