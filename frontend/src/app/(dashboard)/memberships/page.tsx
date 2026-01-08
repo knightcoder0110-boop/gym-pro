@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, Users, Check, X } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,14 +64,16 @@ export default function MembershipsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Membership Plans</h1>
-          <p className="text-[#b3b3b3]">
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Membership Plans</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
             Manage your gym's membership plans and pricing
           </p>
         </div>
-        <Button className="bg-[#1db954] text-black hover:bg-[#1ed760]">
-          <Plus className="mr-2 h-4 w-4" />
-          Create Plan
+        <Button className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20" asChild>
+          <Link href="/memberships/create">
+            <Plus className="mr-2 h-4 w-4" />
+            Create Plan
+          </Link>
         </Button>
       </div>
 
@@ -78,14 +81,14 @@ export default function MembershipsPage() {
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="bg-[#181818] border-none">
+            <Card key={i} className="bg-white/80 dark:bg-zinc-900/40 border-zinc-200 dark:border-white/5 backdrop-blur-xl">
               <CardHeader>
-                <Skeleton className="h-6 w-24 bg-[#282828]" />
+                <Skeleton className="h-6 w-24 bg-zinc-200 dark:bg-zinc-800" />
               </CardHeader>
               <CardContent className="space-y-4">
-                <Skeleton className="h-8 w-32 bg-[#282828]" />
-                <Skeleton className="h-4 w-full bg-[#282828]" />
-                <Skeleton className="h-4 w-3/4 bg-[#282828]" />
+                <Skeleton className="h-8 w-32 bg-zinc-200 dark:bg-zinc-800" />
+                <Skeleton className="h-4 w-full bg-zinc-200 dark:bg-zinc-800" />
+                <Skeleton className="h-4 w-3/4 bg-zinc-200 dark:bg-zinc-800" />
               </CardContent>
             </Card>
           ))}
@@ -100,21 +103,21 @@ export default function MembershipsPage() {
             return (
               <Card
                 key={plan.id}
-                className={`bg-[#181818] border-none relative overflow-hidden ${
+                className={`bg-white/80 dark:bg-zinc-900/40 border-zinc-200 dark:border-white/5 backdrop-blur-xl relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-orange-500/30 ${
                   !plan.isActive ? "opacity-60" : ""
                 }`}
               >
                 {/* Popular badge */}
                 {plan.isPopular && (
                   <div className="absolute top-4 right-4">
-                    <Badge className="bg-[#1db954] text-black">Popular</Badge>
+                    <Badge className="bg-orange-500 text-white border-0 shadow-lg shadow-orange-500/20">Popular</Badge>
                   </div>
                 )}
 
                 {/* Inactive badge */}
                 {!plan.isActive && (
                   <div className="absolute top-4 right-4">
-                    <Badge className="bg-gray-500/20 text-gray-400">Inactive</Badge>
+                    <Badge variant="secondary" className="bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">Inactive</Badge>
                   </div>
                 )}
 
@@ -122,36 +125,36 @@ export default function MembershipsPage() {
                   <div className="flex items-center gap-2">
                     {plan.color && (
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className="w-3 h-3 rounded-full ring-2 ring-white/10"
                         style={{ backgroundColor: plan.color }}
                       />
                     )}
-                    <CardTitle className="text-white text-xl">{plan.name}</CardTitle>
+                    <CardTitle className="text-xl text-zinc-900 dark:text-white">{plan.name}</CardTitle>
                   </div>
                   {plan.description && (
-                    <p className="text-[#b3b3b3] text-sm mt-1">{plan.description}</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">{plan.description}</p>
                   )}
                 </CardHeader>
 
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   {/* Starting Price */}
                   <div>
-                    <p className="text-[#b3b3b3] text-sm">Starting from</p>
-                    <p className="text-3xl font-bold text-white">
+                    <p className="text-zinc-500 dark:text-zinc-400 text-xs uppercase tracking-wider font-semibold">Starting from</p>
+                    <p className="text-3xl font-bold text-zinc-900 dark:text-white mt-1">
                       {formatPrice(lowestPrice)}
-                      <span className="text-base font-normal text-[#b3b3b3]">/month</span>
+                      <span className="text-base font-medium text-zinc-500 dark:text-zinc-400 ml-1">/month</span>
                     </p>
                   </div>
 
                   {/* Duration Options */}
                   <div className="space-y-2">
-                    <p className="text-[#b3b3b3] text-sm font-medium">Duration Options</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">Duration Options</p>
                     <div className="flex flex-wrap gap-2">
                       {plan.durations.map((duration) => (
                         <Badge
                           key={duration.id}
-                          variant="secondary"
-                          className="bg-[#282828] text-white"
+                          variant="outline"
+                          className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-200 border-zinc-200 dark:border-white/10"
                         >
                           {getDurationLabel(duration.durationMonths)} - {formatPrice(duration.price)}
                         </Badge>
@@ -160,17 +163,17 @@ export default function MembershipsPage() {
                   </div>
 
                   {/* Features */}
-                  <div className="space-y-2">
-                    <p className="text-[#b3b3b3] text-sm font-medium">Features</p>
-                    <ul className="space-y-1">
+                  <div className="space-y-3">
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">Features</p>
+                    <ul className="space-y-2">
                       {plan.features.slice(0, 4).map((feature, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm text-white">
-                          <Check className="h-4 w-4 text-[#1db954]" />
+                        <li key={index} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                          <Check className="h-4 w-4 text-emerald-500" />
                           {feature}
                         </li>
                       ))}
                       {plan.features.length > 4 && (
-                        <li className="text-sm text-[#b3b3b3]">
+                        <li className="text-sm text-zinc-500 dark:text-zinc-400 pl-6">
                           +{plan.features.length - 4} more features
                         </li>
                       )}
@@ -178,32 +181,32 @@ export default function MembershipsPage() {
                   </div>
 
                   {/* Includes */}
-                  <div className="flex gap-4 pt-2">
-                    <div className="flex items-center gap-1 text-sm">
+                  <div className="flex gap-4 pt-2 border-t border-zinc-200 dark:border-white/5">
+                    <div className="flex items-center gap-2 text-sm mt-4">
                       {plan.includesClasses ? (
-                        <Check className="h-4 w-4 text-[#1db954]" />
+                        <Check className="h-4 w-4 text-emerald-500" />
                       ) : (
-                        <X className="h-4 w-4 text-[#b3b3b3]" />
+                        <X className="h-4 w-4 text-zinc-400" />
                       )}
-                      <span className={plan.includesClasses ? "text-white" : "text-[#b3b3b3]"}>
+                      <span className={plan.includesClasses ? "text-zinc-700 dark:text-zinc-200" : "text-zinc-400 dark:text-zinc-500"}>
                         Classes
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-sm">
+                    <div className="flex items-center gap-2 text-sm mt-4">
                       {plan.includesPT ? (
-                        <Check className="h-4 w-4 text-[#1db954]" />
+                        <Check className="h-4 w-4 text-emerald-500" />
                       ) : (
-                        <X className="h-4 w-4 text-[#b3b3b3]" />
+                        <X className="h-4 w-4 text-zinc-400" />
                       )}
-                      <span className={plan.includesPT ? "text-white" : "text-[#b3b3b3]"}>
+                      <span className={plan.includesPT ? "text-zinc-700 dark:text-zinc-200" : "text-zinc-400 dark:text-zinc-500"}>
                         Personal Training
                       </span>
                     </div>
                   </div>
 
                   {/* Stats & Actions */}
-                  <div className="flex items-center justify-between pt-4 border-t border-[#282828]">
-                    <div className="flex items-center gap-2 text-[#b3b3b3]">
+                  <div className="flex items-center justify-between pt-4 border-t border-zinc-200 dark:border-white/5">
+                    <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
                       <Users className="h-4 w-4" />
                       <span className="text-sm">{plan._count.memberships} members</span>
                     </div>
@@ -211,14 +214,17 @@ export default function MembershipsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-[#b3b3b3] hover:text-white hover:bg-[#282828]"
+                        className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10"
+                        asChild
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Link href={`/memberships/${plan.id}/edit`}>
+                          <Pencil className="h-4 w-4" />
+                        </Link>
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-[#b3b3b3] hover:text-red-400 hover:bg-[#282828]"
+                        className="text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -230,12 +236,14 @@ export default function MembershipsPage() {
           })}
         </div>
       ) : (
-        <Card className="bg-[#181818] border-none">
+        <Card className="bg-white/80 dark:bg-zinc-900/40 border-zinc-200 dark:border-white/5 backdrop-blur-xl">
           <CardContent className="py-12 text-center">
-            <p className="text-[#b3b3b3] mb-4">No membership plans found.</p>
-            <Button className="bg-[#1db954] text-black hover:bg-[#1ed760]">
-              <Plus className="mr-2 h-4 w-4" />
-              Create Your First Plan
+            <p className="text-zinc-500 dark:text-zinc-400 mb-4">No membership plans found.</p>
+            <Button className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20" asChild>
+              <Link href="/memberships/create">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Your First Plan
+              </Link>
             </Button>
           </CardContent>
         </Card>

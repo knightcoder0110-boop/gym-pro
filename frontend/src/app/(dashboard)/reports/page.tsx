@@ -153,8 +153,43 @@ export default function ReportsPage() {
 
   const isLoading = loadingDashboard || loadingPayments || loadingMembers;
 
+  const stats: StatItem[] = [
+    {
+      title: "Total Members",
+      value: (dashboardData?.totalMembers || 0).toLocaleString(),
+      change: `+${dashboardData?.newMembersThisMonth || 0} this month`,
+      changeType: "positive",
+      icon: Users,
+      color: "orange",
+    },
+    {
+      title: "Monthly Revenue",
+      value: formatCurrency(dashboardData?.monthlyRevenue || 0),
+      change: `${paymentStats?.totalTransactions || 0} transactions`,
+      changeType: "neutral",
+      icon: IndianRupee,
+      color: "emerald",
+    },
+    {
+      title: "Today's Check-ins",
+      value: (dashboardData?.todayCheckIns || 0).toLocaleString(),
+      change: `${dashboardData?.currentlyInGym || 0} currently in gym`,
+      changeType: "neutral",
+      icon: Activity,
+      color: "blue",
+    },
+    {
+      title: "Expiring Soon",
+      value: (dashboardData?.expiringThisWeek || 0).toLocaleString(),
+      change: "This week",
+      changeType: "negative", // Expiring is usually negative/urgent
+      icon: Clock,
+      color: "rose",
+    },
+  ];
+
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-6 lg:p-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -192,87 +227,7 @@ export default function ReportsPage() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4 mt-4">
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-            <Card className="bg-card">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground md:text-sm">Total Members</p>
-                    <p className="text-xl font-bold md:text-2xl">
-                      {isLoading ? "-" : dashboardData?.totalMembers || 0}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-primary/10 p-2 md:p-3">
-                    <Users className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-                  </div>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-xs text-green-500">
-                  <ArrowUpRight className="h-3 w-3" />
-                  <span>+{dashboardData?.newMembersThisMonth || 0} this month</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground md:text-sm">Monthly Revenue</p>
-                    <p className="text-lg font-bold md:text-xl">
-                      {isLoading ? "-" : formatCurrency(dashboardData?.monthlyRevenue || 0)}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-green-500/10 p-2 md:p-3">
-                    <IndianRupee className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
-                  </div>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-xs text-green-500">
-                  <TrendingUp className="h-3 w-3" />
-                  <span>{paymentStats?.totalTransactions || 0} transactions</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground md:text-sm">Today&apos;s Check-ins</p>
-                    <p className="text-xl font-bold md:text-2xl">
-                      {isLoading ? "-" : dashboardData?.todayCheckIns || 0}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-blue-500/10 p-2 md:p-3">
-                    <Activity className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
-                  </div>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-xs text-blue-500">
-                  <Users className="h-3 w-3" />
-                  <span>{dashboardData?.currentlyInGym || 0} currently in gym</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card">
-              <CardContent className="p-4 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground md:text-sm">Expiring Soon</p>
-                    <p className="text-xl font-bold md:text-2xl text-orange-500">
-                      {isLoading ? "-" : dashboardData?.expiringThisWeek || 0}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-orange-500/10 p-2 md:p-3">
-                    <Clock className="h-4 w-4 md:h-5 md:w-5 text-orange-500" />
-                  </div>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-xs text-orange-500">
-                  <Calendar className="h-3 w-3" />
-                  <span>This week</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <StatsRail stats={stats} loading={isLoading} />
 
           {/* Charts Row */}
           <div className="grid gap-4 md:grid-cols-2">

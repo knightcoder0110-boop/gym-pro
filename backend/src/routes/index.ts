@@ -9,6 +9,7 @@ import attendanceRoutes from './attendance.routes.js';
 import classRoutes from './class.routes.js';
 import trainerRoutes from './trainer.routes.js';
 import leadRoutes from './lead.routes.js';
+import settingRoutes from './setting.routes.js';
 
 const router: ReturnType<typeof Router> = Router();
 
@@ -22,5 +23,6 @@ router.use('/attendance', attendanceRoutes);
 router.use('/classes', classRoutes);
 router.use('/trainers', trainerRoutes);
 router.use('/leads', leadRoutes);
+router.use('/settings', settingRoutes);
 
 export default router;

@@ -42,10 +42,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (isChecking) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-background">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1db954]" />
-          <p className="text-sm text-gray-400">Loading...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading...</p>
         </div>
       </div>
     );

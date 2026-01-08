@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { StatsRail, StatItem } from "@/components/dashboard/stats-rail";
 
 interface Payment {
   id: string;
@@ -303,7 +304,7 @@ export default function PaymentsPage() {
   );
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-6 lg:p-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -326,80 +327,44 @@ export default function PaymentsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-        <Card className="bg-card">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-primary/10 p-2 md:p-3">
-                <IndianRupee className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground md:text-sm">Total Revenue</p>
-                <p className="text-lg font-bold md:text-xl">
-                  {loadingStats ? "-" : formatCurrency(statsData?.totalRevenue || 0)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-green-500/10 p-2 md:p-3">
-                <Receipt className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground md:text-sm">Transactions</p>
-                <p className="text-xl font-bold md:text-2xl">
-                  {loadingStats ? "-" : statsData?.totalTransactions || 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-blue-500/10 p-2 md:p-3">
-                <Banknote className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground md:text-sm">Cash</p>
-                <p className="text-lg font-bold md:text-xl">
-                  {loadingStats
-                    ? "-"
-                    : formatCurrency(
-                        statsData?.byMethod.find((m) => m.paymentMethod === "CASH")?._sum.amount || 0
-                      )}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-purple-500/10 p-2 md:p-3">
-                <Wallet className="h-4 w-4 md:h-5 md:w-5 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground md:text-sm">Digital</p>
-                <p className="text-lg font-bold md:text-xl">
-                  {loadingStats
-                    ? "-"
-                    : formatCurrency(
-                        (statsData?.byMethod.find((m) => m.paymentMethod === "UPI")?._sum.amount || 0) +
-                          (statsData?.byMethod.find((m) => m.paymentMethod === "CARD")?._sum.amount || 0)
-                      )}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatsRail
+        stats={[
+          {
+            title: "Total Revenue",
+            value: formatCurrency(statsData?.totalRevenue || 0),
+            icon: IndianRupee,
+            color: "orange",
+            description: "All payments",
+          },
+          {
+            title: "Total Transactions",
+            value: statsData?.totalTransactions?.toString() || "0",
+            icon: Receipt,
+            color: "emerald",
+            description: "Payment count",
+          },
+          {
+            title: "Cash Payments",
+            value: formatCurrency(
+              statsData?.byMethod.find((m) => m.paymentMethod === "CASH")?._sum.amount || 0
+            ),
+            icon: Banknote,
+            color: "blue",
+            description: "Cash received",
+          },
+          {
+            title: "Digital Payments",
+            value: formatCurrency(
+              (statsData?.byMethod.find((m) => m.paymentMethod === "UPI")?._sum.amount || 0) +
+                (statsData?.byMethod.find((m) => m.paymentMethod === "CARD")?._sum.amount || 0)
+            ),
+            icon: Wallet,
+            color: "purple",
+            description: "UPI & Card",
+          },
+        ]}
+        loading={loadingStats}
+      />
 
       {/* Filters & Search */}
       <Card className="bg-card">

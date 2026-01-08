@@ -143,145 +143,142 @@ export default function AddMemberPage() {
   const gender = watch("gender");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="icon"
           asChild
-          className="text-[#b3b3b3] hover:text-white hover:bg-[#282828]"
+          className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10"
         >
           <Link href="/members">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Add New Member</h1>
-          <p className="text-[#b3b3b3]">Create a new gym member profile</p>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Add New Member</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Create a new gym member profile</p>
         </div>
       </div>
 
       {/* Progress Steps */}
-      <div className="flex items-center justify-center gap-2">
-        {steps.map((step, index) => (
-          <div key={step.id} className="flex items-center">
+      <div className="flex items-center justify-between relative px-10">
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-zinc-200 dark:bg-zinc-800 -z-10 rounded-full" />
+        <div 
+          className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-orange-500 -z-10 rounded-full transition-all duration-500 ease-in-out"
+          style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+        />
+        
+        {steps.map((step) => (
+          <div key={step.id} className="flex flex-col items-center gap-2 bg-zinc-50 dark:bg-zinc-900 px-4 py-2 rounded-xl border border-zinc-200 dark:border-white/5">
             <div
               className={cn(
-                "flex items-center justify-center w-10 h-10 rounded-full transition-all",
+                "flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 border-2",
                 currentStep === step.id
-                  ? "bg-[#1db954] text-black"
+                  ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/30 scale-110"
                   : currentStep > step.id
-                  ? "bg-[#1db954]/20 text-[#1db954]"
-                  : "bg-[#282828] text-[#b3b3b3]"
+                  ? "bg-orange-100 dark:bg-orange-500/20 border-orange-500 text-orange-600 dark:text-orange-500"
+                  : "bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-400 dark:text-zinc-500"
               )}
             >
               {currentStep > step.id ? (
-                <Check className="h-5 w-5" />
+                <Check className="h-6 w-6" />
               ) : (
                 <step.icon className="h-5 w-5" />
               )}
             </div>
-            {index < steps.length - 1 && (
-              <div
-                className={cn(
-                  "w-12 h-1 mx-2 rounded",
-                  currentStep > step.id ? "bg-[#1db954]" : "bg-[#282828]"
-                )}
-              />
-            )}
+            <span className={cn(
+              "text-sm font-medium transition-colors",
+              currentStep >= step.id ? "text-zinc-900 dark:text-white" : "text-zinc-400 dark:text-zinc-500"
+            )}>
+              {step.name}
+            </span>
           </div>
         ))}
       </div>
 
-      {/* Step Title */}
-      <div className="text-center">
-        <h2 className="text-lg font-semibold text-white">
-          Step {currentStep}: {steps[currentStep - 1].name}
-        </h2>
-      </div>
-
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Card className="bg-[#181818] border-none max-w-2xl mx-auto">
-          <CardContent className="p-6">
+        <Card className="bg-white/80 dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/5 backdrop-blur-xl shadow-2xl">
+          <CardContent className="p-8">
             {/* Step 1: Personal Info */}
             {currentStep === 1 && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-white">First Name *</Label>
+                    <Label htmlFor="firstName" className="text-zinc-700 dark:text-zinc-300">First Name *</Label>
                     <Input
                       id="firstName"
                       {...register("firstName")}
                       placeholder="John"
-                      className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b]"
+                      className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-orange-500/20"
                     />
                     {errors.firstName && (
-                      <p className="text-red-400 text-sm">{errors.firstName.message}</p>
+                      <p className="text-red-500 dark:text-red-400 text-sm">{errors.firstName.message}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-white">Last Name *</Label>
+                    <Label htmlFor="lastName" className="text-zinc-700 dark:text-zinc-300">Last Name *</Label>
                     <Input
                       id="lastName"
                       {...register("lastName")}
                       placeholder="Doe"
-                      className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b]"
+                      className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-orange-500/20"
                     />
                     {errors.lastName && (
-                      <p className="text-red-400 text-sm">{errors.lastName.message}</p>
+                      <p className="text-red-500 dark:text-red-400 text-sm">{errors.lastName.message}</p>
                     )}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white">Email Address *</Label>
+                  <Label htmlFor="email" className="text-zinc-700 dark:text-zinc-300">Email Address *</Label>
                   <Input
                     id="email"
                     type="email"
                     {...register("email")}
                     placeholder="john@example.com"
-                    className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b]"
+                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-orange-500/20"
                   />
                   {errors.email && (
-                    <p className="text-red-400 text-sm">{errors.email.message}</p>
+                    <p className="text-red-500 dark:text-red-400 text-sm">{errors.email.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-white">Phone Number *</Label>
+                  <Label htmlFor="phone" className="text-zinc-700 dark:text-zinc-300">Phone Number *</Label>
                   <Input
                     id="phone"
                     {...register("phone")}
                     placeholder="9876543210"
-                    className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b]"
+                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-orange-500/20"
                   />
                   {errors.phone && (
-                    <p className="text-red-400 text-sm">{errors.phone.message}</p>
+                    <p className="text-red-500 dark:text-red-400 text-sm">{errors.phone.message}</p>
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth" className="text-white">Date of Birth</Label>
+                    <Label htmlFor="dateOfBirth" className="text-zinc-700 dark:text-zinc-300">Date of Birth</Label>
                     <Input
                       id="dateOfBirth"
                       type="date"
                       {...register("dateOfBirth")}
-                      className="bg-[#282828] border-[#404040] text-white"
+                      className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus:border-orange-500/50 focus:ring-orange-500/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-white">Gender</Label>
+                    <Label className="text-zinc-700 dark:text-zinc-300">Gender</Label>
                     <Select value={gender} onValueChange={(value) => setValue("gender", value as any)}>
-                      <SelectTrigger className="bg-[#282828] border-[#404040] text-white">
+                      <SelectTrigger className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-300 focus:border-orange-500/50 focus:ring-orange-500/20">
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#282828] border-[#404040]">
-                        <SelectItem value="MALE" className="text-white">Male</SelectItem>
-                        <SelectItem value="FEMALE" className="text-white">Female</SelectItem>
-                        <SelectItem value="OTHER" className="text-white">Other</SelectItem>
+                      <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-300">
+                        <SelectItem value="MALE">Male</SelectItem>
+                        <SelectItem value="FEMALE">Female</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -291,43 +288,45 @@ export default function AddMemberPage() {
 
             {/* Step 2: Emergency Contact */}
             {currentStep === 2 && (
-              <div className="space-y-4">
-                <p className="text-[#b3b3b3] text-sm mb-4">
-                  Emergency contact information (optional but recommended)
-                </p>
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-lg p-4 mb-4">
+                  <p className="text-orange-700 dark:text-orange-200 text-sm">
+                    Emergency contact information is optional but highly recommended for member safety.
+                  </p>
+                </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="emergencyName" className="text-white">Contact Name</Label>
+                  <Label htmlFor="emergencyName" className="text-zinc-700 dark:text-zinc-300">Contact Name</Label>
                   <Input
                     id="emergencyName"
                     {...register("emergencyName")}
                     placeholder="Jane Doe"
-                    className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b]"
+                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-orange-500/20"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="emergencyPhone" className="text-white">Contact Phone</Label>
+                  <Label htmlFor="emergencyPhone" className="text-zinc-700 dark:text-zinc-300">Contact Phone</Label>
                   <Input
                     id="emergencyPhone"
                     {...register("emergencyPhone")}
                     placeholder="9876543211"
-                    className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b]"
+                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-orange-500/20"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="emergencyRelation" className="text-white">Relationship</Label>
+                  <Label htmlFor="emergencyRelation" className="text-zinc-700 dark:text-zinc-300">Relationship</Label>
                   <Select onValueChange={(value) => setValue("emergencyRelation", value)}>
-                    <SelectTrigger className="bg-[#282828] border-[#404040] text-white">
+                    <SelectTrigger className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-300 focus:border-orange-500/50 focus:ring-orange-500/20">
                       <SelectValue placeholder="Select relationship" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#282828] border-[#404040]">
-                      <SelectItem value="Spouse" className="text-white">Spouse</SelectItem>
-                      <SelectItem value="Parent" className="text-white">Parent</SelectItem>
-                      <SelectItem value="Sibling" className="text-white">Sibling</SelectItem>
-                      <SelectItem value="Friend" className="text-white">Friend</SelectItem>
-                      <SelectItem value="Other" className="text-white">Other</SelectItem>
+                    <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-300">
+                      <SelectItem value="Spouse">Spouse</SelectItem>
+                      <SelectItem value="Parent">Parent</SelectItem>
+                      <SelectItem value="Sibling">Sibling</SelectItem>
+                      <SelectItem value="Friend">Friend</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -336,45 +335,45 @@ export default function AddMemberPage() {
 
             {/* Step 3: Address */}
             {currentStep === 3 && (
-              <div className="space-y-4">
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-2">
-                  <Label htmlFor="address" className="text-white">Street Address</Label>
+                  <Label htmlFor="address" className="text-zinc-700 dark:text-zinc-300">Street Address</Label>
                   <Textarea
                     id="address"
                     {...register("address")}
                     placeholder="123 Main Street, Apartment 4B"
-                    className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b] min-h-[80px]"
+                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 min-h-[100px] focus:border-orange-500/50 focus:ring-orange-500/20"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="city" className="text-white">City</Label>
+                    <Label htmlFor="city" className="text-zinc-700 dark:text-zinc-300">City</Label>
                     <Input
                       id="city"
                       {...register("city")}
                       placeholder="Mumbai"
-                      className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b]"
+                      className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-orange-500/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="state" className="text-white">State</Label>
+                    <Label htmlFor="state" className="text-zinc-700 dark:text-zinc-300">State</Label>
                     <Input
                       id="state"
                       {...register("state")}
                       placeholder="Maharashtra"
-                      className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b]"
+                      className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-orange-500/20"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="zipCode" className="text-white">ZIP / Postal Code</Label>
+                  <Label htmlFor="zipCode" className="text-zinc-700 dark:text-zinc-300">ZIP / Postal Code</Label>
                   <Input
                     id="zipCode"
                     {...register("zipCode")}
                     placeholder="400001"
-                    className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b]"
+                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-orange-500/50 focus:ring-orange-500/20"
                   />
                 </div>
               </div>
@@ -382,35 +381,35 @@ export default function AddMemberPage() {
 
             {/* Step 4: Health Info */}
             {currentStep === 4 && (
-              <div className="space-y-4">
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-2">
-                  <Label className="text-white">Blood Group</Label>
+                  <Label className="text-zinc-700 dark:text-zinc-300">Blood Group</Label>
                   <Select onValueChange={(value) => setValue("bloodGroup", value)}>
-                    <SelectTrigger className="bg-[#282828] border-[#404040] text-white">
+                    <SelectTrigger className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-300 focus:border-orange-500/50 focus:ring-orange-500/20">
                       <SelectValue placeholder="Select blood group" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#282828] border-[#404040]">
-                      <SelectItem value="A+" className="text-white">A+</SelectItem>
-                      <SelectItem value="A-" className="text-white">A-</SelectItem>
-                      <SelectItem value="B+" className="text-white">B+</SelectItem>
-                      <SelectItem value="B-" className="text-white">B-</SelectItem>
-                      <SelectItem value="AB+" className="text-white">AB+</SelectItem>
-                      <SelectItem value="AB-" className="text-white">AB-</SelectItem>
-                      <SelectItem value="O+" className="text-white">O+</SelectItem>
-                      <SelectItem value="O-" className="text-white">O-</SelectItem>
+                    <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-300">
+                      <SelectItem value="A+">A+</SelectItem>
+                      <SelectItem value="A-">A-</SelectItem>
+                      <SelectItem value="B+">B+</SelectItem>
+                      <SelectItem value="B-">B-</SelectItem>
+                      <SelectItem value="AB+">AB+</SelectItem>
+                      <SelectItem value="AB-">AB-</SelectItem>
+                      <SelectItem value="O+">O+</SelectItem>
+                      <SelectItem value="O-">O-</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="medicalConditions" className="text-white">
+                  <Label htmlFor="medicalConditions" className="text-zinc-700 dark:text-zinc-300">
                     Medical Conditions / Allergies
                   </Label>
                   <Textarea
                     id="medicalConditions"
                     {...register("medicalConditions")}
                     placeholder="Any medical conditions, allergies, or health concerns we should know about..."
-                    className="bg-[#282828] border-[#404040] text-white placeholder:text-[#6b6b6b] min-h-[100px]"
+                    className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 min-h-[120px] focus:border-orange-500/50 focus:ring-orange-500/20"
                   />
                 </div>
 
@@ -419,13 +418,13 @@ export default function AddMemberPage() {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8">
+            <div className="flex justify-between mt-10 pt-6 border-t border-zinc-200 dark:border-white/5">
               <Button
                 type="button"
                 variant="outline"
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className="border-[#282828] bg-transparent text-white hover:bg-[#282828]"
+                className="border-zinc-200 dark:border-white/10 bg-transparent text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Previous
@@ -435,7 +434,7 @@ export default function AddMemberPage() {
                 <Button
                   type="button"
                   onClick={nextStep}
-                  className="bg-[#1db954] text-black hover:bg-[#1ed760]"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-8"
                 >
                   Next
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -444,7 +443,7 @@ export default function AddMemberPage() {
                 <Button
                   type="submit"
                   disabled={createMember.isPending}
-                  className="bg-[#1db954] text-black hover:bg-[#1ed760]"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 shadow-lg shadow-emerald-500/20"
                 >
                   {createMember.isPending ? (
                     <>

@@ -244,4 +244,13 @@ export const attendanceApi = {
     api.get(`/attendance/member/${memberId}`, { params: days ? { days } : {} }),
 };
 
+// Settings API
+export const settingsApi = {
+  updateProfile: (data: { firstName: string; lastName: string; phone?: string; avatar?: string }) =>
+    api.put("/settings/profile", data),
+  updateOrganization: (data: any) => api.put("/settings/organization", data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.put("/settings/password", data),
+};
+
 export default api;

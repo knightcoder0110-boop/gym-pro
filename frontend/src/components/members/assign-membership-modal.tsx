@@ -127,10 +127,10 @@ export function AssignMembershipModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#181818] border-[#282828] text-white max-w-lg">
+      <DialogContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl">Assign Membership</DialogTitle>
-          <p className="text-[#b3b3b3] text-sm">
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm">
             Assign a membership plan to {memberName}
           </p>
         </DialogHeader>
@@ -138,10 +138,10 @@ export function AssignMembershipModal({
         <div className="space-y-6 py-4">
           {/* Plan Selection */}
           <div className="space-y-2">
-            <Label className="text-white">Select Plan</Label>
+            <Label className="text-zinc-700 dark:text-zinc-300">Select Plan</Label>
             {plansLoading ? (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-6 w-6 animate-spin text-[#1db954]" />
+                <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
               </div>
             ) : (
               <div className="grid gap-3">
@@ -155,8 +155,8 @@ export function AssignMembershipModal({
                     className={cn(
                       "p-4 rounded-lg border cursor-pointer transition-all",
                       selectedPlanId === plan.id
-                        ? "border-[#1db954] bg-[#1db954]/10"
-                        : "border-[#282828] bg-[#282828]/50 hover:border-[#404040]"
+                        ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10"
+                        : "border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-800/50 hover:border-orange-500/50 dark:hover:border-orange-500/50"
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -167,14 +167,14 @@ export function AssignMembershipModal({
                             style={{ backgroundColor: plan.color }}
                           />
                         )}
-                        <span className="font-medium">{plan.name}</span>
+                        <span className="font-medium text-zinc-900 dark:text-white">{plan.name}</span>
                       </div>
                       {selectedPlanId === plan.id && (
-                        <Check className="h-5 w-5 text-[#1db954]" />
+                        <Check className="h-5 w-5 text-orange-500" />
                       )}
                     </div>
                     {plan.description && (
-                      <p className="text-[#b3b3b3] text-sm mt-1">
+                      <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
                         {plan.description}
                       </p>
                     )}
@@ -187,28 +187,28 @@ export function AssignMembershipModal({
           {/* Duration Selection */}
           {selectedPlan && (
             <div className="space-y-2">
-              <Label className="text-white">Select Duration</Label>
+              <Label className="text-zinc-700 dark:text-zinc-300">Select Duration</Label>
               <Select
                 value={selectedDurationId}
                 onValueChange={setSelectedDurationId}
               >
-                <SelectTrigger className="bg-[#282828] border-[#404040] text-white">
+                <SelectTrigger className="bg-white dark:bg-zinc-900/50 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white">
                   <SelectValue placeholder="Choose duration" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#282828] border-[#404040]">
+                <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10">
                   {selectedPlan.durations.map((duration) => (
                     <SelectItem
                       key={duration.id}
                       value={duration.id}
-                      className="text-white hover:bg-[#404040]"
+                      className="text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-white/5 focus:bg-zinc-100 dark:focus:bg-white/5"
                     >
-                      <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center justify-between gap-4 w-full">
                         <span>{getDurationLabel(duration.durationMonths)}</span>
-                        <span className="text-[#1db954]">
+                        <span className="text-orange-600 dark:text-orange-500 font-medium">
                           {formatPrice(duration.price)}
                         </span>
                         {duration.discountPercent > 0 && (
-                          <Badge className="bg-[#1db954]/20 text-[#1db954] text-xs">
+                          <Badge className="bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 text-xs border-orange-200 dark:border-orange-500/20">
                             {duration.discountPercent}% off
                           </Badge>
                         )}
@@ -222,25 +222,25 @@ export function AssignMembershipModal({
 
           {/* Price Summary */}
           {selectedDuration && (
-            <div className="rounded-lg bg-[#282828] p-4 space-y-2">
+            <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-4 space-y-2 border border-zinc-200 dark:border-white/5">
               <div className="flex justify-between text-sm">
-                <span className="text-[#b3b3b3]">Plan Price</span>
-                <span className="text-white">
+                <span className="text-zinc-500 dark:text-zinc-400">Plan Price</span>
+                <span className="text-zinc-900 dark:text-white font-medium">
                   {formatPrice(selectedDuration.price)}
                 </span>
               </div>
               {selectedDuration.registrationFee > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-[#b3b3b3]">Registration Fee</span>
-                  <span className="text-white">
+                  <span className="text-zinc-500 dark:text-zinc-400">Registration Fee</span>
+                  <span className="text-zinc-900 dark:text-white font-medium">
                     {formatPrice(selectedDuration.registrationFee)}
                   </span>
                 </div>
               )}
-              <div className="border-t border-[#404040] pt-2 mt-2">
+              <div className="border-t border-zinc-200 dark:border-white/10 pt-2 mt-2">
                 <div className="flex justify-between font-semibold">
-                  <span>Total</span>
-                  <span className="text-[#1db954]">
+                  <span className="text-zinc-900 dark:text-white">Total</span>
+                  <span className="text-orange-600 dark:text-orange-500">
                     {formatPrice(calculateTotal())}
                   </span>
                 </div>
@@ -250,18 +250,18 @@ export function AssignMembershipModal({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-[#282828]">
+        <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-white/10">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="border-[#282828] bg-transparent text-white hover:bg-[#282828]"
+            className="border-zinc-200 dark:border-white/10 bg-transparent text-zinc-700 dark:text-white hover:bg-zinc-100 dark:hover:bg-white/5"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!selectedPlanId || !selectedDurationId || assignMembership.isPending}
-            className="bg-[#1db954] text-black hover:bg-[#1ed760]"
+            className="bg-orange-500 text-white hover:bg-orange-600"
           >
             {assignMembership.isPending ? (
               <>

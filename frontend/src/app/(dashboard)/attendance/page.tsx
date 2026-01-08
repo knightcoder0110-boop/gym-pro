@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { StatsRail, StatItem } from "@/components/dashboard/stats-rail";
 
 interface Member {
   id: string;
@@ -180,8 +181,35 @@ export default function AttendancePage() {
     return `${mins}m`;
   };
 
+  const stats: StatItem[] = [
+    {
+      title: "Currently In",
+      value: (todayData?.stats.currentlyIn || 0).toLocaleString(),
+      icon: Users,
+      color: "orange",
+    },
+    {
+      title: "Total Check-ins",
+      value: (todayData?.stats.totalCheckIns || 0).toLocaleString(),
+      icon: LogIn,
+      color: "emerald",
+    },
+    {
+      title: "Checked Out",
+      value: (todayData?.stats.checkedOut || 0).toLocaleString(),
+      icon: LogOut,
+      color: "blue",
+    },
+    {
+      title: "Time",
+      value: format(new Date(), "hh:mm a"),
+      icon: Clock,
+      color: "purple",
+    },
+  ];
+
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-6 lg:p-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -202,71 +230,7 @@ export default function AttendancePage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-        <Card className="bg-card">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-primary/10 p-2 md:p-3">
-                <Users className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground md:text-sm">Currently In</p>
-                <p className="text-xl font-bold md:text-2xl">
-                  {loadingToday ? "-" : todayData?.stats.currentlyIn || 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-green-500/10 p-2 md:p-3">
-                <LogIn className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground md:text-sm">Total Check-ins</p>
-                <p className="text-xl font-bold md:text-2xl">
-                  {loadingToday ? "-" : todayData?.stats.totalCheckIns || 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-orange-500/10 p-2 md:p-3">
-                <LogOut className="h-4 w-4 md:h-5 md:w-5 text-orange-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground md:text-sm">Checked Out</p>
-                <p className="text-xl font-bold md:text-2xl">
-                  {loadingToday ? "-" : todayData?.stats.checkedOut || 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-blue-500/10 p-2 md:p-3">
-                <Clock className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground md:text-sm">Time</p>
-                <p className="text-lg font-bold md:text-xl">
-                  {format(new Date(), "hh:mm a")}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatsRail stats={stats} loading={loadingToday} />
 
       {/* Main Content */}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -407,49 +371,49 @@ export default function AttendancePage() {
         </Card>
 
         {/* Currently In Gym */}
-        <Card className="bg-card">
+        <Card className="bg-white/80 dark:bg-zinc-900/40 backdrop-blur-xl border-zinc-200 dark:border-white/5">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-lg">
+            <CardTitle className="flex items-center justify-between text-lg text-zinc-900 dark:text-white">
               <span className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
+                <Users className="h-5 w-5 text-orange-500" />
                 Currently In Gym
               </span>
-              <Badge variant="secondary" className="text-sm">
+              <Badge variant="secondary" className="bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
                 {currentlyInGym.length}
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="max-h-[400px] overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
               {loadingToday ? (
                 <div className="flex items-center justify-center p-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
                 </div>
               ) : currentlyInGym.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <Users className="h-12 w-12 text-muted-foreground/50" />
-                  <p className="mt-2 text-muted-foreground">No one in the gym right now</p>
+                  <Users className="h-12 w-12 text-zinc-300 dark:text-zinc-600" />
+                  <p className="mt-2 text-zinc-500 dark:text-zinc-400">No one in the gym right now</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {currentlyInGym.map((record) => (
                     <div
                       key={record.id}
-                      className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors"
+                      className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-white/5 p-3 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
+                        <Avatar className="h-10 w-10 border border-zinc-200 dark:border-white/10">
                           <AvatarImage src={record.member.avatar} />
-                          <AvatarFallback className="bg-primary/10 text-primary">
+                          <AvatarFallback className="bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500">
                             {record.member.firstName[0]}
                             {record.member.lastName[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium text-sm md:text-base">
+                          <p className="font-medium text-sm md:text-base text-zinc-900 dark:text-white">
                             {record.member.firstName} {record.member.lastName}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
                             In since {format(new Date(record.checkInTime), "hh:mm a")}
                           </p>
                         </div>
@@ -459,6 +423,7 @@ export default function AttendancePage() {
                         variant="outline"
                         onClick={() => handleCheckOut(record.id)}
                         disabled={checkOutMutation.isPending}
+                        className="border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white"
                       >
                         {checkOutMutation.isPending ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -479,10 +444,10 @@ export default function AttendancePage() {
       </div>
 
       {/* Today's Activity */}
-      <Card className="bg-card">
+      <Card className="bg-white/80 dark:bg-zinc-900/40 backdrop-blur-xl border-zinc-200 dark:border-white/5">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Clock className="h-5 w-5 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-lg text-zinc-900 dark:text-white">
+            <Clock className="h-5 w-5 text-orange-500" />
             Today&apos;s Activity
           </CardTitle>
         </CardHeader>
@@ -490,7 +455,7 @@ export default function AttendancePage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-left text-sm text-muted-foreground">
+                <tr className="border-b border-zinc-200 dark:border-white/5 text-left text-sm text-zinc-500 dark:text-zinc-400">
                   <th className="pb-3 font-medium">Member</th>
                   <th className="pb-3 font-medium hidden sm:table-cell">Member ID</th>
                   <th className="pb-3 font-medium">Check In</th>
@@ -499,60 +464,60 @@ export default function AttendancePage() {
                   <th className="pb-3 font-medium">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-zinc-200 dark:divide-white/5">
                 {loadingToday ? (
                   <tr>
                     <td colSpan={6} className="py-8 text-center">
-                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-zinc-400" />
                     </td>
                   </tr>
                 ) : todayData?.attendance.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                    <td colSpan={6} className="py-8 text-center text-zinc-500 dark:text-zinc-400">
                       No attendance records today
                     </td>
                   </tr>
                 ) : (
                   todayData?.attendance.map((record) => (
-                    <tr key={record.id} className="hover:bg-muted/50 transition-colors">
+                    <tr key={record.id} className="hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors">
                       <td className="py-3">
                         <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8">
+                          <Avatar className="h-8 w-8 border border-zinc-200 dark:border-white/10">
                             <AvatarImage src={record.member.avatar} />
-                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                            <AvatarFallback className="bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 text-xs">
                               {record.member.firstName[0]}
                               {record.member.lastName[0]}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="font-medium text-sm">
+                          <span className="font-medium text-sm text-zinc-900 dark:text-white">
                             {record.member.firstName} {record.member.lastName}
                           </span>
                         </div>
                       </td>
                       <td className="py-3 hidden sm:table-cell">
-                        <span className="text-sm text-muted-foreground font-mono">
+                        <span className="text-sm text-zinc-500 dark:text-zinc-400 font-mono">
                           {record.member.memberId}
                         </span>
                       </td>
-                      <td className="py-3 text-sm">
+                      <td className="py-3 text-sm text-zinc-700 dark:text-zinc-300">
                         {format(new Date(record.checkInTime), "hh:mm a")}
                       </td>
-                      <td className="py-3 text-sm hidden md:table-cell">
+                      <td className="py-3 text-sm text-zinc-700 dark:text-zinc-300 hidden md:table-cell">
                         {record.checkOutTime
                           ? format(new Date(record.checkOutTime), "hh:mm a")
                           : "-"}
                       </td>
-                      <td className="py-3 text-sm hidden lg:table-cell">
+                      <td className="py-3 text-sm text-zinc-700 dark:text-zinc-300 hidden lg:table-cell">
                         {formatDuration(record.duration)}
                       </td>
                       <td className="py-3">
                         {record.checkOutTime ? (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
                             <CheckCircle2 className="mr-1 h-3 w-3" />
                             Done
                           </Badge>
                         ) : (
-                          <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20 text-xs">
+                          <Badge className="bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 hover:bg-emerald-200 dark:hover:bg-emerald-500/20 text-xs border-0">
                             <Users className="mr-1 h-3 w-3" />
                             In Gym
                           </Badge>
