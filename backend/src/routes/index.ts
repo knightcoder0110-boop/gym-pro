@@ -10,6 +10,7 @@ import classRoutes from './class.routes.js';
 import trainerRoutes from './trainer.routes.js';
 import leadRoutes from './lead.routes.js';
 import settingRoutes from './setting.routes.js';
+import reportRoutes from './report.routes.js';
 
 const router: ReturnType<typeof Router> = Router();
 
@@ -24,5 +25,6 @@ router.use('/classes', classRoutes);
 router.use('/trainers', trainerRoutes);
 router.use('/leads', leadRoutes);
 router.use('/settings', settingRoutes);
+router.use('/reports', reportRoutes);
 
 export default router;

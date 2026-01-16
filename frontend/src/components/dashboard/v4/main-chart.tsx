@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { ChartTooltip } from "@/components/dashboard/v4/chart-tooltip";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
@@ -54,57 +55,31 @@ export function MainChart() {
                 <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-zinc-200 dark:text-zinc-700" opacity={0.2} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" opacity={0.1} />
             <XAxis 
               dataKey="name" 
-              stroke="currentColor" 
-              className="text-zinc-500 dark:text-zinc-400"
-              fontSize={12} 
+              tick={{ fill: "#71717a", fontSize: 10 }} 
               tickLine={false} 
               axisLine={false}
               dy={10}
-              tickMargin={10}
             />
             <YAxis
-              stroke="currentColor"
-              className="text-zinc-500 dark:text-zinc-400"
-              fontSize={12}
+              tick={{ fill: "#71717a", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => metric === "revenue" ? `₹${value}` : `${value}`}
               dx={-10}
-              tickMargin={10}
             />
-            <Tooltip
-              cursor={{ stroke: 'currentColor', strokeWidth: 2, className: "text-zinc-200 dark:text-zinc-700" }}
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  return (
-                    <div className="rounded-xl border border-zinc-200 dark:border-white/10 bg-white/95 dark:bg-zinc-900/95 p-4 shadow-2xl backdrop-blur-md">
-                      <div className="grid gap-1">
-                        <span className="text-[10px] uppercase text-zinc-500 font-bold tracking-wider">
-                          {metric}
-                        </span>
-                        <span className={`font-bold text-2xl ${metric === "revenue" ? "text-orange-500" : "text-emerald-500"}`}>
-                          {metric === "revenue" 
-                            ? `₹${payload[0].value?.toLocaleString()}` 
-                            : payload[0].value}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
+            <Tooltip content={<ChartTooltip currency={metric === "revenue"} />} cursor={{ stroke: "#27272a", strokeWidth: 1, strokeDasharray: "4 4" }} />
             <Area
               type="monotone"
               dataKey={metric}
               stroke={metric === "revenue" ? "#f97316" : "#10b981"}
-              strokeWidth={4}
+              strokeWidth={3}
               fillOpacity={1}
               fill={metric === "revenue" ? "url(#colorRevenue)" : "url(#colorVisitors)"}
               animationDuration={1500}
+              activeDot={{ r: 6, strokeWidth: 2, stroke: "#fff" }}
             />
           </AreaChart>
         </ResponsiveContainer>

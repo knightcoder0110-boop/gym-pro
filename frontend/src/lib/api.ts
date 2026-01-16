@@ -253,4 +253,39 @@ export const settingsApi = {
     api.put("/settings/password", data),
 };
 
+// Reports API
+export const reportsApi = {
+  // Revenue Analytics
+  getRevenueOverview: (params?: { startDate?: string; endDate?: string; groupBy?: 'day' | 'week' | 'month' }) =>
+    api.get("/reports/revenue", { params }),
+  getRevenueByPlan: (params?: { startDate?: string; endDate?: string }) =>
+    api.get("/reports/revenue/by-plan", { params }),
+
+  // Member Analytics
+  getMemberAnalytics: (params?: { startDate?: string; endDate?: string; groupBy?: 'day' | 'week' | 'month' }) =>
+    api.get("/reports/members", { params }),
+  getMemberRetention: (params?: { months?: number }) =>
+    api.get("/reports/members/retention", { params }),
+
+  // Attendance Analytics
+  getAttendanceAnalytics: (params?: { startDate?: string; endDate?: string; groupBy?: 'day' | 'week' | 'month' }) =>
+    api.get("/reports/attendance", { params }),
+
+  // Class Analytics
+  getClassAnalytics: (params?: { startDate?: string; endDate?: string }) =>
+    api.get("/reports/classes", { params }),
+
+  // Trainer Analytics
+  getTrainerAnalytics: (params?: { startDate?: string; endDate?: string }) =>
+    api.get("/reports/trainers", { params }),
+
+  // Leads Analytics
+  getLeadsAnalytics: (params?: { startDate?: string; endDate?: string }) =>
+    api.get("/reports/leads", { params }),
+
+  // Export
+  exportReport: (params: { type: 'revenue' | 'members' | 'attendance'; format?: 'json' | 'csv'; startDate?: string; endDate?: string }) =>
+    api.get("/reports/export", { params, responseType: params.format === 'csv' ? 'blob' : 'json' }),
+};
+
 export default api;
