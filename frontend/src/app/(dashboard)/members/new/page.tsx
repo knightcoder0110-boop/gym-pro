@@ -17,6 +17,7 @@ import {
   MapPin,
   HeartPulse,
   Loader2,
+  Camera,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileUpload } from "@/components/ui/file-upload";
 import { membersApi } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +44,7 @@ const memberSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   dateOfBirth: z.string().optional(),
   gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
+  avatar: z.string().optional(),
   
   // Address
   address: z.string().optional(),
@@ -75,6 +78,7 @@ export default function AddMemberPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const {
     register,
@@ -205,6 +209,32 @@ export default function AddMemberPage() {
             {/* Step 1: Personal Info */}
             {currentStep === 1 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                {/* Avatar Upload */}
+                <div className="flex flex-col items-center gap-4 pb-6 border-b border-zinc-200 dark:border-white/5">
+                  <Label className="text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+                    <Camera className="w-4 h-4" />
+                    Profile Photo (Optional)
+                  </Label>
+                  <FileUpload
+                    category="MEMBER_AVATAR"
+                    variant="avatar"
+                    value={avatarUrl || undefined}
+                    onChange={(url) => {
+                      setAvatarUrl(url);
+                      setValue("avatar", url || undefined);
+                    }}
+                    onUploadComplete={(file) => {
+                      toast.success("Photo uploaded!");
+                    }}
+                    onUploadError={(error) => {
+                      toast.error(`Upload failed: ${error.message}`);
+                    }}
+                  />
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    JPG, PNG or WebP. Max 5MB.
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="firstName" className="text-zinc-700 dark:text-zinc-300">First Name *</Label>

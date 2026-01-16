@@ -44,6 +44,7 @@ model Organization {
   users            User[]
   workoutPlans     WorkoutPlan[]
   notificationLogs NotificationLog[]
+  fileUploads      FileUpload[]
 
   @@index([slug])
 }
@@ -104,6 +105,7 @@ model User {
   leadActivities    LeadActivity[]
   branch            Branch?         @relation(fields: [branchId], references: [id])
   organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  fileUploads       FileUpload[]
 
   @@index([organizationId])
   @@index([email])
@@ -868,3 +870,72 @@ enum NotificationStatus {
   FAILED
   BOUNCED
 }
+
+// ============================================
+// FILE UPLOAD SYSTEM
+// ============================================
+
+model FileUpload {
+  id             String       @id @default(cuid())
+  organizationId String
+  
+  // File metadata
+  key            String       @unique  // S3/R2 storage key
+  originalName   String                // Original filename
+  mimeType       String
+  size           Int                   // Size in bytes
+  
+  // Categorization
+  category       FileCategory
+  entityType     String?               // "member", "trainer", "product", "class"
+  entityId       String?               // Related entity ID
+  
+  // Status tracking
+  status         FileStatus   @default(PENDING)
+  uploadedAt     DateTime?
+  confirmedAt    DateTime?
+  
+  // Access control
+  isPublic       Boolean      @default(false)
+  expiresAt      DateTime?             // For temporary files
+  
+  // URL caching (optional, for CDN URLs)
+  publicUrl      String?
+  
+  // Audit
+  uploadedById   String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadedBy     User?        @relation(fields: [uploadedById], references: [id])
+
+  @@index([organizationId, category])
+  @@index([entityType, entityId])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([createdAt])
+}
+
+enum FileCategory {
+  MEMBER_AVATAR
+  MEMBER_DOCUMENT
+  TRAINER_AVATAR
+  TRAINER_CERTIFICATE
+  PRODUCT_IMAGE
+  CLASS_IMAGE
+  ORGANIZATION_LOGO
+  INVOICE_PDF
+  REPORT_EXPORT
+  OTHER
+}
+
+enum FileStatus {
+  PENDING      // Presigned URL generated, upload not started
+  UPLOADING    // Upload in progress
+  UPLOADED     // Upload complete, not confirmed
+  CONFIRMED    // Linked to entity, fully processed
+  ORPHANED     // No entity link, eligible for cleanup
+  DELETED      // Soft deleted
+}
+

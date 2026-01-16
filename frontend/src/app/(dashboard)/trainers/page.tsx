@@ -16,6 +16,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { FileUpload } from "@/components/ui/file-upload";
 import {
   Dumbbell,
   Users,
@@ -35,6 +36,7 @@ import {
   Eye,
   CheckCircle,
   XCircle,
+  Camera,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -86,6 +88,7 @@ export default function TrainersPage() {
     lastName: "",
     email: "",
     phone: "",
+    avatar: "",
   });
 
   // Fetch trainers
@@ -138,6 +141,7 @@ export default function TrainersPage() {
       lastName: "",
       email: "",
       phone: "",
+      avatar: "",
     });
   };
 
@@ -363,6 +367,22 @@ export default function TrainersPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* Avatar Upload */}
+            <div className="flex flex-col items-center gap-3 pb-4 border-b border-zinc-200 dark:border-white/5">
+              <Label className="text-zinc-700 dark:text-zinc-300 flex items-center gap-2 text-sm">
+                <Camera className="w-4 h-4" />
+                Profile Photo (Optional)
+              </Label>
+              <FileUpload
+                category="TRAINER_AVATAR"
+                variant="avatar"
+                value={trainerForm.avatar || undefined}
+                onChange={(url) => setTrainerForm({ ...trainerForm, avatar: url || "" })}
+                onUploadComplete={() => toast.success("Photo uploaded!")}
+                onUploadError={(error) => toast.error(`Upload failed: ${error.message}`)}
+              />
+            </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-zinc-700 dark:text-zinc-300">First Name *</Label>

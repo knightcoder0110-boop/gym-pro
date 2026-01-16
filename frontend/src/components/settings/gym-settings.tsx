@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building2, Globe, MapPin, Save, Loader2, AlertTriangle, Map } from "lucide-react";
+import { FileUpload } from "@/components/ui/file-upload";
+import { Building2, Globe, MapPin, Save, Loader2, AlertTriangle, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { settingsApi } from "@/lib/api";
 
@@ -35,6 +36,7 @@ export function GymSettings({ user }: GymSettingsProps) {
     country: "",
     timezone: "Asia/Kolkata",
     currency: "INR",
+    logo: "",
   });
 
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
@@ -52,6 +54,7 @@ export function GymSettings({ user }: GymSettingsProps) {
         country: user.organization.country || "",
         timezone: user.organization.timezone || "Asia/Kolkata",
         currency: user.organization.currency || "INR",
+        logo: user.organization.logo || "",
       });
     }
   }, [user]);
@@ -121,6 +124,30 @@ export function GymSettings({ user }: GymSettingsProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-8 pt-6">
+          {/* Logo Upload */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-zinc-100 dark:border-white/5">
+            <div className="shrink-0">
+              <FileUpload
+                category="ORGANIZATION_LOGO"
+                variant="avatar"
+                value={formData.logo || undefined}
+                onChange={(url) => setFormData({ ...formData, logo: url || "" })}
+                onUploadComplete={() => toast.success("Logo uploaded!")}
+                onUploadError={(error) => toast.error(`Upload failed: ${error.message}`)}
+                disabled={!isAdmin}
+              />
+            </div>
+            <div className="text-center sm:text-left">
+              <Label className="text-zinc-700 dark:text-zinc-300 flex items-center gap-2 justify-center sm:justify-start mb-1">
+                <ImageIcon className="w-4 h-4" />
+                Organization Logo
+              </Label>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Appears in reports, invoices, and member app. Square images work best.
+              </p>
+            </div>
+          </div>
+          
           <div className="grid gap-8 sm:grid-cols-2">
             <div className="space-y-3 sm:col-span-2">
               <Label className="text-zinc-700 dark:text-zinc-300">Gym Name</Label>

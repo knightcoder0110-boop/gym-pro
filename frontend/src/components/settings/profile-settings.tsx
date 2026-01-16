@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { FileUpload } from "@/components/ui/file-upload";
 import { User, Mail, Phone, Camera, Save, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { settingsApi } from "@/lib/api";
@@ -72,19 +73,14 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
           <CardContent className="relative pt-0 pb-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 md:gap-6 -mt-12 md:-mt-16 px-2 md:px-4">
               <div className="relative group">
-                <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-white dark:border-zinc-900 shadow-xl ring-4 ring-black/5 dark:ring-white/5">
-                  <AvatarImage src={formData.avatar} className="object-cover" />
-                  <AvatarFallback className="bg-linear-to-br from-orange-500 to-amber-600 text-white text-3xl md:text-4xl font-bold">
-                    {formData.firstName?.[0]}
-                    {formData.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <button 
-                  className="absolute bottom-0 right-0 md:bottom-1 md:right-1 rounded-full bg-orange-500 p-2 md:p-2.5 text-white shadow-lg hover:bg-orange-600 transition-all hover:scale-110 border-4 border-white dark:border-zinc-900 group-hover:rotate-12"
-                  aria-label="Change avatar"
-                >
-                  <Camera className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                </button>
+                <FileUpload
+                  category="MEMBER_AVATAR"
+                  variant="avatar"
+                  value={formData.avatar || undefined}
+                  onChange={(url) => setFormData({ ...formData, avatar: url || "" })}
+                  onUploadComplete={() => toast.success("Photo uploaded!")}
+                  onUploadError={(error) => toast.error(`Upload failed: ${error.message}`)}
+                />
               </div>
               <div className="flex-1 mb-2 space-y-2 w-full min-w-0">
                 <div>
