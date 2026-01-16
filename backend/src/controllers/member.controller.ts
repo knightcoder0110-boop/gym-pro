@@ -103,15 +103,31 @@ export const createMember = asyncHandler(async (req: Request, res: Response) => 
   }
   const memberId = `GYM${nextNumber.toString().padStart(4, '0')}`;
 
+  // Convert dateOfBirth string to DateTime if present
+  const memberData: any = {
+    ...data,
+    memberId,
+    organizationId,
+  };
+
+  if (data.dateOfBirth) {
+    // Convert "YYYY-MM-DD" to ISO DateTime
+    memberData.dateOfBirth = new Date(data.dateOfBirth);
+  }
+
   const member = await prisma.member.create({
-    data: {
-      ...data,
-      memberId,
-      organizationId,
-    },
+    data: memberData,
     include: {
       branch: { select: { id: true, name: true } },
     },
+  });
+
+  // Send welcome email (async - don't block response)
+  import('../services/notification.service.js').then(({ notificationService }) => {
+    notificationService.sendWelcomeEmail({
+      memberId: member.id,
+      organizationId,
+    }).catch(err => console.error('Failed to send welcome email:', err));
   });
 
   res.status(201).json({

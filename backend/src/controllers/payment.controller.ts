@@ -143,6 +143,14 @@ export const createPayment = asyncHandler(async (req: Request, res: Response) =>
     },
   });
 
+  // Send payment confirmation email (async - don't block response)
+  import('../services/notification.service.js').then(({ notificationService }) => {
+    notificationService.sendPaymentConfirmation({
+      paymentId: payment.id,
+      organizationId,
+    }).catch(err => console.error('Failed to send payment confirmation:', err));
+  });
+
   res.status(201).json({
     success: true,
     data: payment,

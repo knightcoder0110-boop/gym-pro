@@ -40,9 +40,10 @@ model Organization {
   leads          Lead[]
   members        Member[]
   plans          Plan[]
-  products       Product[]
-  users          User[]
-  workoutPlans   WorkoutPlan[]
+  products         Product[]
+  users            User[]
+  workoutPlans     WorkoutPlan[]
+  notificationLogs NotificationLog[]
 
   @@index([slug])
 }
@@ -155,6 +156,7 @@ model Member {
   ptSessions        PTSession[]
   payments          Payment[]
   workoutPlans      WorkoutPlanAssignment[]
+  notificationLogs  NotificationLog[]
 
   @@index([organizationId])
   @@index([branchId])
@@ -805,4 +807,64 @@ enum CheckInMethod {
   MANUAL
   BIOMETRIC
   CARD
+}
+
+// ============================================
+// NOTIFICATION SYSTEM
+// ============================================
+
+model NotificationLog {
+  id             String              @id @default(cuid())
+  organizationId String
+  memberId       String?
+  userId         String?             // For staff notifications
+  type           NotificationType
+  channel        NotificationChannel @default(EMAIL)
+  recipient      String              // email address or phone
+  subject        String?
+  body           String?             // Store rendered content
+  templateId     String?             // Reference to template used
+  metadata       Json?               // Additional context (paymentId, membershipId, etc.)
+  status         NotificationStatus  @default(PENDING)
+  sentAt         DateTime?
+  error          String?
+  retryCount     Int                 @default(0)
+  createdAt      DateTime            @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  member       Member?      @relation(fields: [memberId], references: [id])
+
+  @@index([organizationId, type])
+  @@index([organizationId, status])
+  @@index([memberId])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  WELCOME
+  PAYMENT_CONFIRMATION
+  PAYMENT_FAILED
+  MEMBERSHIP_EXPIRY_REMINDER
+  MEMBERSHIP_EXPIRED
+  CLASS_BOOKING_CONFIRMATION
+  CLASS_REMINDER
+  CLASS_CANCELLED
+  PASSWORD_RESET
+  BIRTHDAY_WISH
+  CUSTOM
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
 }

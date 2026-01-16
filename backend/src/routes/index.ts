@@ -11,6 +11,7 @@ import trainerRoutes from './trainer.routes.js';
 import leadRoutes from './lead.routes.js';
 import settingRoutes from './setting.routes.js';
 import reportRoutes from './report.routes.js';
+import notificationRoutes from './notification.routes.js';
 
 const router: ReturnType<typeof Router> = Router();
 
@@ -26,5 +27,7 @@ router.use('/trainers', trainerRoutes);
 router.use('/leads', leadRoutes);
 router.use('/settings', settingRoutes);
 router.use('/reports', reportRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;
+
