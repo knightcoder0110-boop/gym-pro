@@ -67,11 +67,13 @@ export const uploadService = {
     );
     const key = `${storagePath}/${uniqueId}.${extension}`;
 
-    // Get presigned upload URL
+    // Generate presigned URL for upload
     const presigned = await storageProvider.getPresignedUploadUrl(
       key,
       params.mimeType,
-      params.size
+      params.size,
+      undefined,
+      params.isPublic
     );
 
     // Create database record

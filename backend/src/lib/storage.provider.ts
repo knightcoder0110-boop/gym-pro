@@ -53,12 +53,15 @@ export interface StorageProvider {
     key: string,
     mimeType: string,
     size: number,
-    expiresIn?: number
+    expiresIn?: number,
+    isPublic?: boolean
   ): Promise<PresignedUploadResult>;
   
   getPresignedDownloadUrl(key: string, expiresIn?: number): Promise<string>;
   
   getPublicUrl(key: string): string;
+  
+  uploadBuffer(key: string, buffer: Buffer, mimeType: string, isPublic?: boolean): Promise<void>;
   
   deleteObject(key: string): Promise<void>;
   
@@ -75,7 +78,8 @@ export const storageProvider: StorageProvider = {
     key: string,
     mimeType: string,
     size: number,
-    expiresIn: number = STORAGE_CONFIG.presignedUrlExpiry
+    expiresIn: number = STORAGE_CONFIG.presignedUrlExpiry,
+    isPublic: boolean = false
   ): Promise<PresignedUploadResult> {
     const client = getS3Client();
 
@@ -84,7 +88,7 @@ export const storageProvider: StorageProvider = {
       Key: key,
       ContentType: mimeType,
       ContentLength: size,
-      // ACL: 'private', // Default private, can be changed per upload
+      ACL: isPublic ? 'public-read' : 'private',
     });
 
     const url = await getSignedUrl(client, command, { expiresIn });
@@ -128,6 +132,24 @@ export const storageProvider: StorageProvider = {
     }
 
     return `https://${STORAGE_CONFIG.bucket}.s3.${STORAGE_CONFIG.region}.amazonaws.com/${key}`;
+  },
+
+  /**
+   * Upload buffer directly to storage (for server-side uploads like PDFs)
+   */
+  async uploadBuffer(key: string, buffer: Buffer, mimeType: string, isPublic: boolean = false): Promise<void> {
+    const client = getS3Client();
+
+    const command = new PutObjectCommand({
+      Bucket: STORAGE_CONFIG.bucket,
+      Key: key,
+      Body: buffer,
+      ContentType: mimeType,
+      ContentLength: buffer.length,
+      ACL: isPublic ? 'public-read' : 'private',
+    });
+
+    await client.send(command);
   },
 
   /**

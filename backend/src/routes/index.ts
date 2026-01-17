@@ -13,6 +13,7 @@ import settingRoutes from './setting.routes.js';
 import reportRoutes from './report.routes.js';
 import notificationRoutes from './notification.routes.js';
 import uploadRoutes from './upload.routes.js';
+import invoiceRoutes from './invoice.routes.js';
 
 const router: ReturnType<typeof Router> = Router();
 
@@ -30,6 +31,7 @@ router.use('/settings', settingRoutes);
 router.use('/reports', reportRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/uploads', uploadRoutes);
+router.use('/invoices', invoiceRoutes);
 
 export default router;
 

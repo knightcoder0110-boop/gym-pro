@@ -80,8 +80,8 @@ export const confirmUpload = async (req: Request, res: Response) => {
 
     const file = await uploadService.confirmUpload(id, organizationId);
 
-    // Get URL for response
-    const url = await uploadService.getFileUrl(id, organizationId);
+    // Get URL for response - use publicUrl if available, otherwise generate signed URL
+    const url = file.publicUrl || await uploadService.getFileUrl(id, organizationId);
 
     res.json({
       success: true,

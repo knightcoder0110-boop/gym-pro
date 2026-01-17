@@ -48,6 +48,7 @@ export const updateOrganization = asyncHandler(async (req: Request, res: Respons
     country,
     timezone,
     currency,
+    logo,
   } = req.body;
 
   // Check if user has permission (Admin or Super Admin)
@@ -69,6 +70,7 @@ export const updateOrganization = asyncHandler(async (req: Request, res: Respons
       country,
       timezone,
       currency,
+      logo,
     },
   });
 
