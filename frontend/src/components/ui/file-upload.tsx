@@ -175,7 +175,7 @@ export function FileUpload({
         id: `${Date.now()}-${i}`,
         progress: 0,
         status: error ? "error" : "pending",
-        error,
+        error: error ?? undefined,
       };
 
       newFiles.push(fileState);
