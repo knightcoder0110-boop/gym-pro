@@ -49,9 +49,17 @@ export const uploadService = {
    * Initiate upload - generates presigned URL and creates DB record
    */
   async initiateUpload(params: InitiateUploadParams): Promise<InitiateUploadResult> {
+    console.log('[Upload] Initiating upload:', {
+      category: params.category,
+      fileName: params.fileName,
+      size: `${Math.round(params.size / 1024)}KB`,
+      mimeType: params.mimeType,
+    });
+
     // Validate file against category limits
     const validation = validateFile(params.mimeType, params.size, params.category);
     if (!validation.valid) {
+      console.error('[Upload] Validation failed:', validation.error);
       throw new Error(validation.error);
     }
 
@@ -75,6 +83,14 @@ export const uploadService = {
       undefined,
       params.isPublic
     );
+
+    console.log('[Upload] Generated presigned URL:', {
+      key,
+      expiresAt: presigned.expiresAt,
+      hasACL: presigned.url.includes('x-amz-acl'),
+      hasChecksum: presigned.url.includes('checksum'),
+      urlPreview: presigned.url.substring(0, 100) + '...',
+    });
 
     // Create database record
     const fileUpload = await prisma.fileUpload.create({

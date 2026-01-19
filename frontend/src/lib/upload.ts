@@ -164,15 +164,50 @@ export async function uploadToPresignedUrl(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve();
       } else {
-        reject(new Error(`Upload failed with status ${xhr.status}`));
+        // Parse S3 error response for better error messages
+        let errorMessage = `Upload failed with status ${xhr.status}`;
+        
+        try {
+          // S3 returns XML error responses
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xhr.responseText, 'text/xml');
+          const code = xmlDoc.getElementsByTagName('Code')[0]?.textContent;
+          const message = xmlDoc.getElementsByTagName('Message')[0]?.textContent;
+          
+          // Provide user-friendly messages for common errors
+          if (code === 'AccessDenied') {
+            errorMessage = 'Access denied. Please check your permissions or contact support.';
+          } else if (code === 'InvalidArgument') {
+            errorMessage = 'Invalid upload parameters. Please try again or contact support.';
+          } else if (code === 'EntityTooLarge') {
+            errorMessage = 'File is too large for upload.';
+          } else if (code === 'SignatureDoesNotMatch') {
+            errorMessage = 'Upload signature mismatch. Please refresh and try again.';
+          } else if (message) {
+            errorMessage = message;
+          }
+        } catch (e) {
+          // Fallback to status-based error
+          console.error('Failed to parse S3 error:', e);
+        }
+        
+        console.error('[Upload] S3 upload failed:', {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          response: xhr.responseText.substring(0, 200),
+        });
+        
+        reject(new Error(errorMessage));
       }
     });
 
     xhr.addEventListener('error', () => {
-      reject(new Error('Upload failed'));
+      console.error('[Upload] Network error during upload');
+      reject(new Error('Network error. Please check your connection and try again.'));
     });
 
     xhr.addEventListener('abort', () => {
+      console.log('[Upload] Upload cancelled by user');
       reject(new Error('Upload cancelled'));
     });
 

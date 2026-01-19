@@ -73,25 +73,34 @@ export interface StorageProvider {
 export const storageProvider: StorageProvider = {
   /**
    * Generate presigned URL for client-side upload
+   * NOTE: We don't include ACL or ContentLength in the signed params because:
+   * 1. ACL is blocked by default "Block Public Access" settings on most S3 buckets
+   * 2. ContentLength causes checksum validation issues with browser uploads
+   * For public files, configure bucket policy instead of object-level ACLs
    */
   async getPresignedUploadUrl(
     key: string,
     mimeType: string,
-    size: number,
+    _size: number, // Not used in signing to avoid checksum issues
     expiresIn: number = STORAGE_CONFIG.presignedUrlExpiry,
-    isPublic: boolean = false
+    _isPublic: boolean = false // Not used - use bucket policy for public access
   ): Promise<PresignedUploadResult> {
     const client = getS3Client();
 
+    // Only include ContentType in the signed request
+    // Do NOT include: ACL (blocked by bucket policy), ContentLength (causes checksum issues)
     const command = new PutObjectCommand({
       Bucket: STORAGE_CONFIG.bucket,
       Key: key,
       ContentType: mimeType,
-      ContentLength: size,
-      ACL: isPublic ? 'public-read' : 'private',
     });
 
-    const url = await getSignedUrl(client, command, { expiresIn });
+    // Generate presigned URL without checksum requirements
+    // Use unhoistableHeaders to prevent AWS SDK from adding checksum query params
+    const url = await getSignedUrl(client, command, { 
+      expiresIn,
+      unhoistableHeaders: new Set(['content-type']),
+    });
 
     return {
       url,

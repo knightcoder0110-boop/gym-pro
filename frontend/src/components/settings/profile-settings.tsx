@@ -76,7 +76,6 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
                 <FileUpload
                   category="MEMBER_AVATAR"
                   variant="avatar"
-                  isPublic={true}
                   value={formData.avatar || undefined}
                   onChange={(url) => setFormData({ ...formData, avatar: url || "" })}
                   onUploadComplete={() => toast.success("Photo uploaded!")}

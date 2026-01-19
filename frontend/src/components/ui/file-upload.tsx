@@ -149,12 +149,27 @@ export function FileUpload({
 
   // Validate file
   const validateFile = (file: File): string | null => {
+    // Empty file check
+    if (file.size === 0) {
+      return 'File is empty. Please select a valid file.';
+    }
+    
+    // Size check with detailed message
     if (file.size > effectiveMaxSize) {
-      return `File too large. Max size: ${formatFileSize(effectiveMaxSize)}`;
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      const maxSizeMB = (effectiveMaxSize / (1024 * 1024)).toFixed(0);
+      return `File too large (${fileSizeMB}MB). Maximum allowed: ${maxSizeMB}MB`;
     }
+    
+    // Type check with allowed extensions
     if (!effectiveTypes.includes("*/*") && !effectiveTypes.includes(file.type)) {
-      return `Invalid file type. Allowed: ${effectiveTypes.join(", ")}`;
+      const allowedExtensions = effectiveTypes
+        .map(t => t.split('/')[1] || t)
+        .filter(ext => ext !== '*')
+        .join(', ');
+      return `Invalid file type "${file.type}". Allowed: ${allowedExtensions}`;
     }
+    
     return null;
   };
 
@@ -165,10 +180,23 @@ export function FileUpload({
     const newFiles: FileState[] = [];
 
     for (let i = 0; i < selectedFiles.length; i++) {
-      if (currentCount + newFiles.length >= maxFiles) break;
+      // Check max files limit
+      if (currentCount + newFiles.length >= maxFiles) {
+        if (typeof window !== 'undefined') {
+          const { toast } = await import('sonner');
+          toast.warning(`Maximum ${maxFiles} file(s) allowed`);
+        }
+        break;
+      }
 
       const file = selectedFiles[i];
       const error = validateFile(file);
+
+      // Show validation error immediately
+      if (error && typeof window !== 'undefined') {
+        const { toast } = await import('sonner');
+        toast.error(error);
+      }
 
       const fileState: FileState = {
         file,

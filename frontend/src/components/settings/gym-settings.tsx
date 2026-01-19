@@ -130,7 +130,6 @@ export function GymSettings({ user }: GymSettingsProps) {
               <FileUpload
                 category="ORGANIZATION_LOGO"
                 variant="avatar"
-                isPublic={true}
                 value={formData.logo || undefined}
                 onChange={(url) => setFormData({ ...formData, logo: url || "" })}
                 onUploadComplete={() => toast.success("Logo uploaded!")}
