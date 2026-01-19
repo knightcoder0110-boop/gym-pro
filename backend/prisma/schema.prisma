@@ -12,6 +12,7 @@ model Organization {
   name           String
   slug           String        @unique
   logo           String?
+  logoKey        String?       // S3 key for credential-independent storage
   email          String
   phone          String
   address        String?
@@ -84,6 +85,7 @@ model User {
   lastName          String
   phone             String?
   avatar            String?
+  avatarKey         String?       // S3 key for credential-independent storage
   role              UserRole        @default(STAFF)
   isTrainer         Boolean         @default(false)
   specializations   String[]
@@ -123,6 +125,7 @@ model Member {
   dateOfBirth       DateTime?
   gender            Gender?
   avatar            String?
+  avatarKey         String?           // S3 key for credential-independent storage
   address           String?
   city              String?
   state             String?
@@ -326,6 +329,7 @@ model Class {
   dropInPrice             Float?
   color                   String?
   image                   String?
+  imageKey                String?  // S3 key for credential-independent storage
   isActive                Boolean         @default(true)
   createdAt               DateTime        @default(now())
   updatedAt               DateTime        @updatedAt
@@ -485,6 +489,7 @@ model Product {
   sellingPrice   Float
   trackInventory Boolean         @default(true)
   images         String[]
+  imageKeys      String[]  // S3 keys for credential-independent storage
   isActive       Boolean         @default(true)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -517,6 +522,7 @@ model Exercise {
   equipment      String?
   videoUrl       String?
   imageUrl       String?
+  imageUrlKey    String?  // S3 key for credential-independent storage
   isActive       Boolean      @default(true)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }

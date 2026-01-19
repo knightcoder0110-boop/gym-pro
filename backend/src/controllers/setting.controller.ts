@@ -2,20 +2,58 @@ import { type Request, type Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { AppError, asyncHandler } from '../middlewares/error.middleware.js';
+import { extractS3Key, getPresignedFileUrl } from '../lib/file-url.resolver.js';
+import { uploadService } from '../services/upload.service.js';
 
 // Update User Profile
 export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user!.userId;
+  const { organizationId } = req.user!;
   const { firstName, lastName, phone, avatar } = req.body;
+
+  // Get current user to check for existing avatar
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { avatarKey: true, avatar: true },
+  });
+
+  // Prepare update data
+  const updateData: any = {
+    firstName,
+    lastName,
+    phone,
+    avatar,
+  };
+
+  // Extract S3 key from avatar URL for credential-independent storage
+  if (avatar) {
+    const newAvatarKey = extractS3Key(avatar);
+    if (newAvatarKey) {
+      updateData.avatarKey = newAvatarKey;
+
+      // Delete old avatar if it's different from the new one
+      const oldAvatarKey = currentUser?.avatarKey || extractS3Key(currentUser?.avatar || '');
+      if (oldAvatarKey && oldAvatarKey !== newAvatarKey) {
+        // Delete asynchronously - don't block the update
+        uploadService.deleteFileByKey(oldAvatarKey, organizationId).catch((err) => {
+          console.error('[Settings] Failed to delete old avatar:', err);
+        });
+      }
+    }
+  } else if (avatar === null || avatar === '') {
+    // User is removing their avatar
+    updateData.avatarKey = null;
+    const oldAvatarKey = currentUser?.avatarKey || extractS3Key(currentUser?.avatar || '');
+    if (oldAvatarKey) {
+      uploadService.deleteFileByKey(oldAvatarKey, organizationId).catch((err) => {
+        console.error('[Settings] Failed to delete old avatar:', err);
+      });
+    }
+  }
 
   const updatedUser = await prisma.user.update({
     where: { id: userId },
-    data: {
-      firstName,
-      lastName,
-      phone,
-      avatar,
-    },
+    data: updateData,
     select: {
       id: true,
       email: true,
@@ -23,13 +61,22 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
       lastName: true,
       phone: true,
       avatar: true,
+      avatarKey: true,
       role: true,
     },
   });
 
+  // Resolve avatar URL using presigned URL (bucket doesn't allow public access)
+  const avatarUrl = await getPresignedFileUrl(updatedUser.avatarKey) || await getPresignedFileUrl(updatedUser.avatar);
+  const resolvedUser = {
+    ...updatedUser,
+    avatar: avatarUrl,
+    avatarKey: undefined, // Don't expose internal key
+  };
+
   res.json({
     success: true,
-    data: updatedUser,
+    data: resolvedUser,
     message: 'Profile updated successfully',
   });
 });
@@ -57,26 +104,69 @@ export const updateOrganization = asyncHandler(async (req: Request, res: Respons
     throw new AppError('Not authorized to update organization settings', 403, 'FORBIDDEN');
   }
 
+  // Get current organization to check for existing logo
+  const currentOrg = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { logoKey: true, logo: true },
+  });
+
+  // Prepare update data
+  const updateData: any = {
+    name,
+    email,
+    phone,
+    website,
+    address,
+    city,
+    state,
+    country,
+    timezone,
+    currency,
+    logo,
+  };
+
+  // Extract S3 key from logo URL for credential-independent storage
+  if (logo) {
+    const newLogoKey = extractS3Key(logo);
+    if (newLogoKey) {
+      updateData.logoKey = newLogoKey;
+
+      // Delete old logo if it's different from the new one
+      const oldLogoKey = currentOrg?.logoKey || extractS3Key(currentOrg?.logo || '');
+      if (oldLogoKey && oldLogoKey !== newLogoKey) {
+        // Delete asynchronously - don't block the update
+        uploadService.deleteFileByKey(oldLogoKey, organizationId).catch((err) => {
+          console.error('[Settings] Failed to delete old logo:', err);
+        });
+      }
+    }
+  } else if (logo === null || logo === '') {
+    // Organization is removing their logo
+    updateData.logoKey = null;
+    const oldLogoKey = currentOrg?.logoKey || extractS3Key(currentOrg?.logo || '');
+    if (oldLogoKey) {
+      uploadService.deleteFileByKey(oldLogoKey, organizationId).catch((err) => {
+        console.error('[Settings] Failed to delete old logo:', err);
+      });
+    }
+  }
+
   const updatedOrg = await prisma.organization.update({
     where: { id: organizationId },
-    data: {
-      name,
-      email,
-      phone,
-      website,
-      address,
-      city,
-      state,
-      country,
-      timezone,
-      currency,
-      logo,
-    },
+    data: updateData,
   });
+
+  // Resolve logo URL using presigned URL (bucket doesn't allow public access)
+  const logoUrl = await getPresignedFileUrl(updatedOrg.logoKey) || await getPresignedFileUrl(updatedOrg.logo);
+  const resolvedOrg = {
+    ...updatedOrg,
+    logo: logoUrl,
+    logoKey: undefined, // Don't expose internal key
+  };
 
   res.json({
     success: true,
-    data: updatedOrg,
+    data: resolvedOrg,
     message: 'Organization settings updated successfully',
   });
 });

@@ -71,10 +71,11 @@ interface FileState {
 }
 
 // ============================================
-// DEFAULT LIMITS BY CATEGORY
+// FALLBACK LIMITS (used while fetching from server)
+// Server limits are the source of truth
 // ============================================
 
-const DEFAULT_LIMITS: Record<
+const FALLBACK_LIMITS: Record<
   FileCategory,
   { maxSize: number; types: string[] }
 > = {
@@ -89,6 +90,35 @@ const DEFAULT_LIMITS: Record<
   REPORT_EXPORT: { maxSize: 20 * 1024 * 1024, types: ["application/pdf", "text/csv"] },
   OTHER: { maxSize: 10 * 1024 * 1024, types: ["*/*"] },
 };
+
+// Cache for server limits (shared across all FileUpload instances)
+let cachedServerLimits: Record<FileCategory, { maxSize: number; types: string[] }> | null = null;
+let limitsPromise: Promise<void> | null = null;
+
+async function fetchServerLimits(): Promise<void> {
+  if (cachedServerLimits) return;
+  if (limitsPromise) return limitsPromise;
+
+  limitsPromise = (async () => {
+    try {
+      const config = await uploadApi.getConfig();
+      cachedServerLimits = Object.entries(config.limits).reduce(
+        (acc, [category, limits]) => {
+          acc[category as FileCategory] = {
+            maxSize: limits.maxSize,
+            types: limits.allowedTypes,
+          };
+          return acc;
+        },
+        {} as Record<FileCategory, { maxSize: number; types: string[] }>
+      );
+    } catch (error) {
+      console.warn('[FileUpload] Failed to fetch server limits, using fallback:', error);
+    }
+  })();
+
+  return limitsPromise;
+}
 
 // ============================================
 // HELPER FUNCTIONS
@@ -136,10 +166,24 @@ export function FileUpload({
 }: FileUploadProps) {
   const [files, setFiles] = React.useState<FileState[]>([]);
   const [isDragging, setIsDragging] = React.useState(false);
+  const [serverLimits, setServerLimits] = React.useState<Record<FileCategory, { maxSize: number; types: string[] }> | null>(cachedServerLimits);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const abortControllersRef = React.useRef<Map<string, AbortController>>(new Map());
 
-  // Get limits
-  const limits = DEFAULT_LIMITS[category] || DEFAULT_LIMITS.OTHER;
+  // Fetch server limits on mount (cached globally)
+  React.useEffect(() => {
+    if (!cachedServerLimits) {
+      fetchServerLimits().then(() => {
+        if (cachedServerLimits) {
+          setServerLimits(cachedServerLimits);
+        }
+      });
+    }
+  }, []);
+
+  // Get limits - prefer server limits, fallback to hardcoded
+  const limitsSource = serverLimits || FALLBACK_LIMITS;
+  const limits = limitsSource[category] || limitsSource.OTHER;
   const effectiveMaxSize = maxSize || limits.maxSize;
   const effectiveTypes = acceptedTypes || limits.types;
 
@@ -221,6 +265,10 @@ export function FileUpload({
 
   // Upload single file
   const uploadSingleFile = async (fileState: FileState) => {
+    // Create abort controller for this upload
+    const abortController = new AbortController();
+    abortControllersRef.current.set(fileState.id, abortController);
+
     setFiles((prev) =>
       prev.map((f) =>
         f.id === fileState.id ? { ...f, status: "uploading" as const } : f
@@ -232,6 +280,7 @@ export function FileUpload({
         entityType,
         entityId,
         isPublic,
+        abortSignal: abortController.signal,
         onProgress: (progress) => {
           setFiles((prev) =>
             prev.map((f) =>
@@ -240,6 +289,9 @@ export function FileUpload({
           );
         },
       });
+
+      // Clean up abort controller
+      abortControllersRef.current.delete(fileState.id);
 
       setFiles((prev) =>
         prev.map((f) =>
@@ -250,9 +302,21 @@ export function FileUpload({
       );
 
       onUploadComplete?.(result);
+      // Pass URL for display. Backend extracts S3 key via extractS3Key() for storage.
+      // On page refresh, API returns fresh presigned URL from stored key.
       onChange?.(result.url);
     } catch (error) {
+      // Clean up abort controller
+      abortControllersRef.current.delete(fileState.id);
+
       const err = error instanceof Error ? error : new Error("Upload failed");
+
+      // Don't show error for cancelled uploads, just remove from list
+      if (err.message === "Upload cancelled") {
+        setFiles((prev) => prev.filter((f) => f.id !== fileState.id));
+        return;
+      }
+
       setFiles((prev) =>
         prev.map((f) =>
           f.id === fileState.id
@@ -262,6 +326,16 @@ export function FileUpload({
       );
       onUploadError?.(err, fileState.file);
     }
+  };
+
+  // Cancel upload in progress
+  const cancelUpload = (fileId: string) => {
+    const controller = abortControllersRef.current.get(fileId);
+    if (controller) {
+      controller.abort();
+      abortControllersRef.current.delete(fileId);
+    }
+    setFiles((prev) => prev.filter((f) => f.id !== fileId));
   };
 
   // Remove file from list
@@ -309,7 +383,11 @@ export function FileUpload({
   // ============================================
 
   if (variant === "avatar") {
-    const currentUrl = value || existingFiles[0]?.url || files.find(f => f.result)?.result?.url;
+    // Prioritize recently uploaded file URL, then value prop, then existing files
+    // Also check if value looks like an S3 key (not a URL) - don't use keys directly as src
+    const recentUploadUrl = files.find(f => f.result)?.result?.url;
+    const isValueUrl = value && (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('blob:'));
+    const currentUrl = recentUploadUrl || (isValueUrl ? value : null) || existingFiles[0]?.url;
     const isUploading = files.some((f) => f.status === "uploading");
 
     return (
@@ -559,6 +637,7 @@ export function FileUpload({
               fileState={file}
               showPreview={showPreview}
               onRemove={() => removeFile(file.id)}
+              onCancel={() => cancelUpload(file.id)}
             />
           ))}
         </div>
@@ -575,10 +654,12 @@ function FileCard({
   fileState,
   showPreview,
   onRemove,
+  onCancel,
 }: {
   fileState: FileState;
   showPreview: boolean;
   onRemove: () => void;
+  onCancel?: () => void;
 }) {
   const [preview, setPreview] = React.useState<string | null>(null);
 
@@ -589,6 +670,8 @@ function FileCard({
       return () => URL.revokeObjectURL(url);
     }
   }, [fileState.file, showPreview]);
+
+  const isUploading = fileState.status === "uploading";
 
   return (
     <div
@@ -611,7 +694,7 @@ function FileCard({
         )}
 
         {/* Progress Overlay */}
-        {fileState.status === "uploading" && (
+        {isUploading && (
           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
             <Loader2 className="w-8 h-8 text-white animate-spin mb-2" />
             <span className="text-white font-semibold">{fileState.progress}%</span>
@@ -621,6 +704,15 @@ function FileCard({
                 style={{ width: `${fileState.progress}%` }}
               />
             </div>
+            {/* Cancel button during upload */}
+            {onCancel && (
+              <button
+                onClick={onCancel}
+                className="mt-3 px-3 py-1 text-xs bg-white/20 hover:bg-white/30 text-white rounded-full transition-colors"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         )}
 
@@ -651,19 +743,19 @@ function FileCard({
         </p>
       </div>
 
-      {/* Remove Button */}
-      <button
-        onClick={onRemove}
-        className={cn(
-          "absolute top-2 left-2 w-6 h-6 rounded-full",
-          "bg-black/50 hover:bg-black/70 text-white",
-          "flex items-center justify-center transition-all",
-          "opacity-0 group-hover:opacity-100"
-        )}
-        style={{ opacity: 1 }} // Always show for now
-      >
-        <X className="w-3 h-3" />
-      </button>
+      {/* Remove Button - show when not uploading */}
+      {!isUploading && (
+        <button
+          onClick={onRemove}
+          className={cn(
+            "absolute top-2 left-2 w-6 h-6 rounded-full",
+            "bg-black/50 hover:bg-black/70 text-white",
+            "flex items-center justify-center transition-all"
+          )}
+        >
+          <X className="w-3 h-3" />
+        </button>
+      )}
     </div>
   );
 }

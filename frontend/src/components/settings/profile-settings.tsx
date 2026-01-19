@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/ui/file-upload";
 import { User, Mail, Phone, Camera, Save, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { settingsApi } from "@/lib/api";
+import { settingsApi, authApi } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
 
 interface ProfileSettingsProps {
   user: any;
@@ -18,6 +19,7 @@ interface ProfileSettingsProps {
 
 export function ProfileSettings({ user }: ProfileSettingsProps) {
   const queryClient = useQueryClient();
+  const { setUser } = useAuthStore();
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -48,7 +50,13 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
         phone: formData.phone,
         avatar: formData.avatar,
       });
-      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+
+      // Refetch user data and update both react-query cache and auth store
+      const response = await authApi.me();
+      const updatedUser = response.data.data;
+      setUser(updatedUser);
+      queryClient.setQueryData(["auth", "me"], updatedUser);
+
       toast.success("Profile updated successfully!");
     } catch (error) {
       toast.error("Failed to update profile");

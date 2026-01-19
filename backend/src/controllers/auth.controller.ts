@@ -5,6 +5,7 @@ import { config } from '../config/index.js';
 import { prisma } from '../lib/prisma.js';
 import { AppError, asyncHandler } from '../middlewares/error.middleware.js';
 import type { JwtPayload } from '../middlewares/auth.middleware.js';
+import { getPresignedFileUrl } from '../lib/file-url.resolver.js';
 
 const generateTokens = (payload: JwtPayload) => {
   const accessToken = jwt.sign(payload, config.jwt.secret as jwt.Secret, {
@@ -143,6 +144,7 @@ export const me = asyncHandler(async (req: Request, res: Response) => {
       lastName: true,
       phone: true,
       avatar: true,
+      avatarKey: true,
       role: true,
       organization: {
         select: {
@@ -150,6 +152,7 @@ export const me = asyncHandler(async (req: Request, res: Response) => {
           name: true,
           slug: true,
           logo: true,
+          logoKey: true,
         },
       },
       branch: {
@@ -165,9 +168,35 @@ export const me = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError('User not found', 404, 'NOT_FOUND');
   }
 
+  // Resolve avatar and logo URLs using presigned URLs (bucket doesn't allow public access)
+  // Try avatarKey first, fallback to avatar (legacy field)
+  let avatarUrl = await getPresignedFileUrl(user.avatarKey);
+  if (!avatarUrl) {
+    avatarUrl = await getPresignedFileUrl(user.avatar);
+  }
+
+  let logoUrl: string | null = null;
+  if (user.organization) {
+    logoUrl = await getPresignedFileUrl(user.organization.logoKey);
+    if (!logoUrl) {
+      logoUrl = await getPresignedFileUrl(user.organization.logo);
+    }
+  }
+
+  const resolvedUser = {
+    ...user,
+    avatar: avatarUrl,
+    avatarKey: undefined, // Don't expose internal key to frontend
+    organization: user.organization ? {
+      ...user.organization,
+      logo: logoUrl,
+      logoKey: undefined, // Don't expose internal key to frontend
+    } : null,
+  };
+
   res.json({
     success: true,
-    data: user,
+    data: resolvedUser,
   });
 });
 

@@ -1,6 +1,7 @@
 import { type Request, type Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { AppError, asyncHandler } from '../middlewares/error.middleware.js';
+import { resolveFileUrl, getPublicFileUrl, getPresignedFileUrl } from '../lib/file-url.resolver.js';
 
 export const getMembers = asyncHandler(async (req: Request, res: Response) => {
   const { page = 1, limit = 20, status, search, planId } = req.query;
@@ -41,13 +42,20 @@ export const getMembers = asyncHandler(async (req: Request, res: Response) => {
     prisma.member.count({ where }),
   ]);
 
-  res.json({
-    success: true,
-    data: members.map((member) => ({
+  // Resolve avatar URLs using presigned URLs (bucket doesn't allow public access)
+  const membersWithResolvedAvatars = await Promise.all(
+    members.map(async (member) => ({
       ...member,
+      // Use avatarKey if available, fallback to avatar (legacy) - both go through getPresignedFileUrl
+      avatar: await getPresignedFileUrl(member.avatarKey) || await getPresignedFileUrl(member.avatar),
       currentMembership: member.memberships[0] || null,
       memberships: undefined,
-    })),
+    }))
+  );
+
+  res.json({
+    success: true,
+    data: membersWithResolvedAvatars,
     meta: {
       page: Number(page),
       limit: Number(limit),
@@ -77,9 +85,28 @@ export const getMember = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError('Member not found', 404, 'NOT_FOUND');
   }
 
+  // Resolve avatar URLs using presigned URLs (bucket doesn't allow public access)
+  let memberAvatar = await getPresignedFileUrl(member.avatarKey);
+  if (!memberAvatar) {
+    memberAvatar = await getPresignedFileUrl(member.avatar);
+  }
+
+  const trainerAvatar = member.trainer?.avatar
+    ? await getPresignedFileUrl(member.trainer.avatar)
+    : null;
+
+  const memberWithResolvedAvatar = {
+    ...member,
+    avatar: memberAvatar,
+    trainer: member.trainer ? {
+      ...member.trainer,
+      avatar: trainerAvatar,
+    } : null,
+  };
+
   res.json({
     success: true,
-    data: member,
+    data: memberWithResolvedAvatar,
   });
 });
 
@@ -109,6 +136,15 @@ export const createMember = asyncHandler(async (req: Request, res: Response) => 
     memberId,
     organizationId,
   };
+
+  // Extract S3 key from avatar URL for credential-independent storage
+  if (data.avatar) {
+    const { extractS3Key } = await import('../lib/file-url.resolver.js');
+    const avatarKey = extractS3Key(data.avatar);
+    if (avatarKey) {
+      memberData.avatarKey = avatarKey;
+    }
+  }
 
   if (data.dateOfBirth) {
     // Convert "YYYY-MM-DD" to ISO DateTime
@@ -148,6 +184,15 @@ export const updateMember = asyncHandler(async (req: Request, res: Response) => 
 
   if (!existing) {
     throw new AppError('Member not found', 404, 'NOT_FOUND');
+  }
+
+  // Extract S3 key from avatar URL for credential-independent storage
+  if (data.avatar) {
+    const { extractS3Key } = await import('../lib/file-url.resolver.js');
+    const avatarKey = extractS3Key(data.avatar);
+    if (avatarKey) {
+      data.avatarKey = avatarKey;
+    }
   }
 
   const member = await prisma.member.update({

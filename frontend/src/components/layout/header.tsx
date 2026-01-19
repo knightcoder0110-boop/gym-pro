@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useAuthStore } from "@/stores/auth-store";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -24,10 +25,15 @@ interface HeaderProps {
 export function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const { user, logout } = useAuthStore();
+
+  // Get user initials for avatar fallback
+  const userInitials = user
+    ? `${user.firstName?.charAt(0) || ''}${user.lastName?.charAt(0) || ''}`.toUpperCase() || 'U'
+    : 'U';
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    logout();
     toast.success("Logged out successfully");
     router.push("/login");
   };
@@ -170,28 +176,28 @@ export function Header({ onMenuClick }: HeaderProps) {
         {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button 
+            <button
               className="flex h-9 sm:h-11 items-center gap-2 sm:gap-3 rounded-xl bg-zinc-100 dark:bg-white/5 p-1.5 sm:pl-2 sm:pr-4 hover:bg-zinc-200 dark:hover:bg-white/10 transition-all group border border-zinc-200 dark:border-white/5"
               aria-label="User menu"
             >
               <Avatar className="h-6 w-6 sm:h-8 sm:w-8 ring-2 ring-white dark:ring-white/10 group-hover:ring-orange-500/50 transition-all">
-                <AvatarImage src="/avatars/admin.png" alt="Admin" />
+                <AvatarImage src={user?.avatar || undefined} alt={user?.firstName || 'User'} />
                 <AvatarFallback className="bg-linear-to-br from-orange-500 to-amber-600 text-white text-xs font-bold">
-                  AD
+                  {userInitials}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden sm:flex flex-col items-start">
-                <span className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Admin</span>
-                <span className="text-[10px] text-zinc-500 font-medium">Pro Plan</span>
+                <span className="text-sm font-bold text-zinc-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{user?.firstName || 'User'}</span>
+                <span className="text-[10px] text-zinc-500 font-medium">{user?.role || 'Member'}</span>
               </div>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60 bg-white/90 dark:bg-zinc-900/90 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white backdrop-blur-2xl rounded-2xl p-2 shadow-2xl">
             <DropdownMenuLabel className="px-3 py-2">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-bold text-zinc-900 dark:text-white">Admin User</p>
+                <p className="text-sm font-bold text-zinc-900 dark:text-white">{user?.firstName} {user?.lastName}</p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  admin@jerai.com
+                  {user?.email}
                 </p>
               </div>
             </DropdownMenuLabel>

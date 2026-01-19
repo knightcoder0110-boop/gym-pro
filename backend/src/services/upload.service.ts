@@ -288,6 +288,44 @@ export const uploadService = {
   },
 
   /**
+   * Delete a file by S3 key (for cleanup when replacing files)
+   * This is useful when you don't have the uploadId but have the key
+   */
+  async deleteFileByKey(key: string, organizationId?: string): Promise<void> {
+    if (!key) return;
+
+    // Delete from storage
+    try {
+      await storageProvider.deleteObject(key);
+    } catch (error) {
+      console.error('[Upload] Failed to delete from storage:', key, error);
+      // Continue - file might not exist anymore
+    }
+
+    // Try to find and soft delete in database (if record exists)
+    try {
+      const whereClause: any = { key };
+      if (organizationId) {
+        whereClause.organizationId = organizationId;
+      }
+
+      const fileUpload = await prisma.fileUpload.findFirst({
+        where: whereClause,
+      });
+
+      if (fileUpload) {
+        await prisma.fileUpload.update({
+          where: { id: fileUpload.id },
+          data: { status: FileStatus.DELETED },
+        });
+      }
+    } catch (error) {
+      console.error('[Upload] Failed to update file record:', key, error);
+      // Not critical - file is already deleted from storage
+    }
+  },
+
+  /**
    * Get files by entity
    */
   async getFilesByEntity(

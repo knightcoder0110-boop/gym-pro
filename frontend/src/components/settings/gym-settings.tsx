@@ -16,7 +16,8 @@ import {
 import { FileUpload } from "@/components/ui/file-upload";
 import { Building2, Globe, MapPin, Save, Loader2, AlertTriangle, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { settingsApi } from "@/lib/api";
+import { settingsApi, authApi } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth-store";
 
 interface GymSettingsProps {
   user: any;
@@ -24,6 +25,7 @@ interface GymSettingsProps {
 
 export function GymSettings({ user }: GymSettingsProps) {
   const queryClient = useQueryClient();
+  const { setUser } = useAuthStore();
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -68,7 +70,13 @@ export function GymSettings({ user }: GymSettingsProps) {
     try {
       setIsSaving(true);
       await settingsApi.updateOrganization(formData);
-      await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+
+      // Refetch user data and update both react-query cache and auth store
+      const response = await authApi.me();
+      const updatedUser = response.data.data;
+      setUser(updatedUser);
+      queryClient.setQueryData(["auth", "me"], updatedUser);
+
       toast.success("Gym settings updated successfully!");
     } catch (error) {
       toast.error("Failed to update gym settings");
