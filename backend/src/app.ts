@@ -13,14 +13,19 @@ const app: Express = express();
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'https://gym-pro-six.vercel.app',
   config.cors.origin,
-].filter(Boolean);
+].filter(Boolean).map(origin => origin.replace(/\/$/, '')); // Remove trailing slashes
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Normalize origin by removing trailing slash
+    const normalizedOrigin = origin?.replace(/\/$/, '');
+    
+    if (!origin || allowedOrigins.includes(normalizedOrigin)) {
       callback(null, true);
     } else {
+      console.log(`CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
