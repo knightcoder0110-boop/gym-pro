@@ -20,7 +20,7 @@ const allowedOrigins = [
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
     // Normalize origin by removing trailing slash
-    const normalizedOrigin = origin?.replace(/\/$/, '');
+    const normalizedOrigin = origin ? origin.replace(/\/$/, '') : '';
     
     if (!origin || allowedOrigins.includes(normalizedOrigin)) {
       callback(null, true);
